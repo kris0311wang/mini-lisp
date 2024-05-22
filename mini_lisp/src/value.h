@@ -18,6 +18,7 @@ public:
     [[nodiscard]] bool isBool() const;
     [[nodiscard]] bool isString() const;
     [[nodiscard]] bool isPair() const;
+    [[nodiscard]] bool isSelfEvaluating() const;
 };
 using ValuePtr = std::shared_ptr<Value>;
 class BooleanValue:public Value{

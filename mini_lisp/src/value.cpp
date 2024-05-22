@@ -44,6 +44,10 @@ std::string Value::internalToString() const{
     return toString();
 }
 
+bool Value::isSelfEvaluating() const {
+    return isNum() || isBool() || isString() || isNum();
+}
+
 std::string PairValue::internalToString() const {
     if(cdr->isNil()){
         return car->internalToString();
