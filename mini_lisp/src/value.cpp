@@ -2,6 +2,8 @@
 // Created by 王愉博 on 24-5-23.
 //
 #include"value.h"
+#include <sstream>
+#include <iomanip>
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
 }
@@ -56,12 +58,12 @@ std::string PairValue::toString() const {
     return "(" + internalToString() + ")";
 }
 
-std::string StringValue::internalToString() const {
-    return value;
-}
 std::string StringValue::toString() const {
-    return "\"" + value + "\"";
+    std::stringstream ss;
+    ss << std::quoted(value);
+    return ss.str();
 }
+
 
 std::string SymbolValue::toString() const {
     return value;

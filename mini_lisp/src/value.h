@@ -56,7 +56,6 @@ class StringValue:public Value{
     std::string value;
 public:
     explicit StringValue(std::string  value):value(std::move(value)){}
-    [[nodiscard]] std::string internalToString() const override;
     [[nodiscard]] std::string toString() const override;
 };
 #endif //MINI_LISP_VALUE_H
