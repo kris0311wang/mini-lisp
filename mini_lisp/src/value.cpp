@@ -11,6 +11,10 @@ std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
 }
 
+bool BooleanValue::getValue() const {
+    return value;
+}
+
 std::string NumericValue::toString() const {
     return isInt() ? std::to_string(static_cast<int>(value)) : std::to_string(value);
 }
@@ -137,6 +141,13 @@ std::optional<double> Value::asNumber() const {
         return std::static_pointer_cast<const NumericValue>(shared_from_this())->getValue();
     }
     return std::nullopt;
+}
+
+std::optional<bool> Value::asBool() {
+    if(isBool()){
+        return std::dynamic_pointer_cast<BooleanValue>(shared_from_this())->getValue();
+    }
+    return true;
 }
 
 std::shared_ptr<Value> BuiltinProcValue::toQuote() {

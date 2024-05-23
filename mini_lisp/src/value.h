@@ -31,6 +31,8 @@ public:
 
     bool isBool() const;
 
+    std::optional<bool> asBool();
+
     bool isString() const;
 
     bool isPair() const;
@@ -49,6 +51,8 @@ using ValuePtr = std::shared_ptr<Value>;
 class BooleanValue : public Value {
     bool value;
 public:
+    bool getValue() const;
+
     explicit BooleanValue(const bool &value) : value(value) {}
 
     std::string toString() const override;
