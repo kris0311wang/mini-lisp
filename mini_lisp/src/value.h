@@ -7,6 +7,7 @@
 #include<iostream>
 #include<memory>
 #include<string>
+#include<vector>
 class Value:public std::enable_shared_from_this<Value>{
 public:
     [[nodiscard]] virtual std::string internalToString() const;
@@ -19,6 +20,7 @@ public:
     [[nodiscard]] bool isString() const;
     [[nodiscard]] bool isPair() const;
     [[nodiscard]] bool isSelfEvaluating() const;
+    [[nodiscard]] virtual std::vector<std::shared_ptr<Value>> toVector() ;
 };
 using ValuePtr = std::shared_ptr<Value>;
 class BooleanValue:public Value{
@@ -46,6 +48,9 @@ public:
     explicit PairValue(const ValuePtr& car,const ValuePtr&  cdr): car(car->shared_from_this()), cdr(cdr->shared_from_this()){}
     [[nodiscard]] std::string internalToString() const override;
     [[nodiscard]] std::string toString() const override;
+    [[nodiscard]] ValuePtr getCar() const;
+    [[nodiscard]] ValuePtr getCdr() const;
+    [[nodiscar]] std::vector<ValuePtr> toVector() override;
 };
 class SymbolValue:public Value {
     std::string value;

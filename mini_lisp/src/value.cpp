@@ -4,6 +4,7 @@
 #include"value.h"
 #include <sstream>
 #include <iomanip>
+#include <vector>
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
 }
@@ -48,6 +49,10 @@ bool Value::isSelfEvaluating() const {
     return isNum() || isBool() || isString() || isNum();
 }
 
+std::vector<std::shared_ptr<Value>> Value::toVector() {
+    return {shared_from_this()};
+}
+
 std::string PairValue::internalToString() const {
     if(cdr->isNil()){
         return car->internalToString();
@@ -60,6 +65,27 @@ std::string PairValue::internalToString() const {
 
 std::string PairValue::toString() const {
     return "(" + internalToString() + ")";
+}
+
+std::vector<ValuePtr> PairValue::toVector() {
+    std::vector<ValuePtr> result;
+    auto temp = shared_from_this();
+    while(temp->isPair()){
+        auto pair = std::dynamic_pointer_cast<PairValue>(temp);
+        temp=pair->car;
+    }
+    if(temp && !temp->isNil()){
+        result.push_back(temp);
+    }
+    return result;
+}
+
+ValuePtr PairValue::getCar() const {
+    return car;
+}
+
+ValuePtr PairValue::getCdr() const {
+    return cdr;
 }
 
 std::string StringValue::toString() const {
