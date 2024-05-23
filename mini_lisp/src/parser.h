@@ -4,14 +4,19 @@
 
 #ifndef MINI_LISP_PARSER_H
 #define MINI_LISP_PARSER_H
+
 #include"value.h"
 #include"token.h"
 #include <deque>
+
 class Parser {
     std::deque<TokenPtr> tokens;
 public:
     explicit Parser(std::deque<TokenPtr> tokens);;
+
     ValuePtr parse();
-    ValuePtr parseTails() ;
+
+    ValuePtr parseTails();
 };
+
 #endif //MINI_LISP_PARSER_H

@@ -7,8 +7,13 @@
 
 #include "value.h"
 #include<unordered_map>
+
 extern std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs;
-ValuePtr add(const std::vector<ValuePtr>& params);
-ValuePtr print(const std::vector<ValuePtr>& params);
+
+ValuePtr add(const std::vector<ValuePtr> &params);
+
+ValuePtr print(const std::vector<ValuePtr> &params);
+
 void init_builtins();
+
 #endif  // MINI_LISP_BUILTINS_H
