@@ -7,61 +7,77 @@
 #include<iostream>
 #include<memory>
 #include<string>
+#include <utility>
 #include<vector>
+#include<optional>
 class Value:public std::enable_shared_from_this<Value>{
 public:
-    [[nodiscard]] virtual std::string internalToString() const;
-    [[nodiscard]] virtual std::string toString() const = 0;
+       virtual std::string internalToString() const;
+       virtual std::string toString() const = 0;
     virtual ~Value() = default;
-    [[nodiscard]] bool isNil() const;
-    [[nodiscard]] bool isSymbol() const;
-    [[nodiscard]] bool isNum() const;
-    [[nodiscard]] bool isBool() const;
-    [[nodiscard]] bool isString() const;
-    [[nodiscard]] bool isPair() const;
-    [[nodiscard]] bool isSelfEvaluating() const;
-    [[nodiscard]] virtual std::vector<std::shared_ptr<Value>> toVector() ;
+       bool isNil() const;
+       bool isSymbol() const;
+       virtual std::optional<std::string> asSymbol() const;
+       bool isNum() const;
+       bool isBool() const;
+       bool isString() const;
+       bool isPair() const;
+       bool isSelfEvaluating() const;
+       virtual std::vector<std::shared_ptr<Value>> toVector() ;
+       virtual std::shared_ptr<Value> toQuote() const;
+       virtual std::optional<double> asNumber() const;
 };
 using ValuePtr = std::shared_ptr<Value>;
 class BooleanValue:public Value{
     bool value;
 public:
     explicit BooleanValue(const bool& value):value(value){}
-    [[nodiscard]] std::string toString() const override ;
+       std::string toString() const override ;
 };
 class NumericValue:public Value{
     double value;
 public:
     explicit NumericValue(const double& value):value(value){}
-    [[nodiscard]] bool isInt()const;
-    [[nodiscard]] std::string toString() const override ;
+       bool isInt()const;
+       std::string toString() const override ;
+       double getValue() const;
 };
 class NilValue:public Value{
 public:
-    [[nodiscard]] std::string internalToString () const override;
-    [[nodiscard]] std::string toString() const override ;
+       std::string internalToString () const override;
+       std::string toString() const override ;
 };
 class PairValue:public Value{
     ValuePtr car;
     ValuePtr cdr;
 public:
     explicit PairValue(const ValuePtr& car,const ValuePtr&  cdr): car(car->shared_from_this()), cdr(cdr->shared_from_this()){}
-    [[nodiscard]] std::string internalToString() const override;
-    [[nodiscard]] std::string toString() const override;
-    [[nodiscard]] ValuePtr getCar() const;
-    [[nodiscard]] ValuePtr getCdr() const;
-    [[nodiscar]] std::vector<ValuePtr> toVector() override;
+       std::string internalToString() const override;
+       std::string toString() const override;
+       ValuePtr getCar() const;
+       ValuePtr getCdr() const;
+       std::vector<ValuePtr> toVector() override;
 };
 class SymbolValue:public Value {
     std::string value;
 public:
     explicit SymbolValue(std::string value):value(std::move(value)){}
-    [[nodiscard]] std::string toString() const override;
+       std::string toString() const override;
 };
 class StringValue:public Value{
     std::string value;
 public:
     explicit StringValue(std::string  value):value(std::move(value)){}
-    [[nodiscard]] std::string toString() const override;
+       std::string toString() const override;
+       std::string internalToString() const override;
+};
+using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);//内建函数的函数指针类型
+class BuiltinProcValue:public Value{
+public:
+    std::string name;
+    BuiltinFuncType* func;//函数指针
+    BuiltinProcValue(std::string name,BuiltinFuncType func):name(std::move(name)),func(func){}//构造函数
+    std::shared_ptr<Value> toQuote() const override;
+    std::string toString() const override;
 };
 #endif //MINI_LISP_VALUE_H

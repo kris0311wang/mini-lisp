@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <optional>
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
 }
@@ -46,10 +47,10 @@ std::string Value::internalToString() const{
 }
 
 bool Value::isSelfEvaluating() const {
-    return isNum() || isBool() || isString() || isNum();
+    return isNum() || isBool() || isString() ;
 }
 
-std::vector<std::shared_ptr<Value>> Value::toVector() {
+std::vector<std::shared_ptr<Value>> Value::toVector(){
     return {shared_from_this()};
 }
 
@@ -67,19 +68,18 @@ std::string PairValue::toString() const {
     return "(" + internalToString() + ")";
 }
 
-std::vector<ValuePtr> PairValue::toVector() {
+std::vector<ValuePtr> PairValue::toVector()  {//PairValue转vector
     std::vector<ValuePtr> result;
-    auto temp = shared_from_this();
+    ValuePtr temp=std::make_shared<PairValue>(*this);
     while(temp->isPair()){
-        auto pair = std::dynamic_pointer_cast<PairValue>(temp);
-        temp=pair->car;
+        result.push_back(std::dynamic_pointer_cast<PairValue>(temp)->car);
+        temp=std::dynamic_pointer_cast<PairValue>(temp)->cdr;
     }
     if(temp && !temp->isNil()){
         result.push_back(temp);
     }
     return result;
 }
-
 ValuePtr PairValue::getCar() const {
     return car;
 }
@@ -94,7 +94,40 @@ std::string StringValue::toString() const {
     return ss.str();
 }
 
+std::string StringValue::internalToString() const {
+    return value;
+}
+
 
 std::string SymbolValue::toString() const {
+    return value;
+}
+std::shared_ptr<Value> Value::toQuote() const{
+    return std::make_shared<SymbolValue>(internalToString());
+}
+
+std::optional<std::string> Value::asSymbol() const {
+    if(isSymbol()){
+        return std::static_pointer_cast<const SymbolValue>(shared_from_this())->toString();
+    }
+    return std::nullopt;
+}
+
+std::optional<double> Value::asNumber() const {
+    if(isNum()){
+        return std::static_pointer_cast<const NumericValue>(shared_from_this())->getValue();
+    }
+    return std::nullopt;
+}
+
+std::shared_ptr<Value> BuiltinProcValue::toQuote() const {
+    return std::make_shared<SymbolValue>(name);
+}
+
+std::string BuiltinProcValue::toString() const {
+    return "#<procedure>";
+}
+
+double NumericValue::getValue() const {
     return value;
 }
