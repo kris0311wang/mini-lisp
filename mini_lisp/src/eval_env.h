@@ -26,7 +26,7 @@ public:
 
     ValuePtr lookupBinding(const std::string &name) const;
 
-    static ValuePtr apply(const ValuePtr &proc, const std::vector<ValuePtr> &args);
+    static ValuePtr apply(const ValuePtr &proc, const std::vector<ValuePtr> &args, EvalEnv &env);
 
     std::vector<ValuePtr> evalList(const ValuePtr &expr);
 
