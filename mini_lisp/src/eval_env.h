@@ -12,9 +12,9 @@
 class Value;
 using ValuePtr = std::shared_ptr<Value>;
 
-class EvalEnv {
+class EvalEnv :public std::enable_shared_from_this<EvalEnv>{
     std::unordered_map<std::string, ValuePtr> symbolTable;//unimplemented
-    std::shared_ptr<EvalEnv> parent;
+    std::shared_ptr<EvalEnv> parent=nullptr;
 public:
     EvalEnv();
 
@@ -27,6 +27,10 @@ public:
     static ValuePtr apply(const ValuePtr &proc, const std::vector<ValuePtr> &args);
 
     std::vector<ValuePtr> evalList(const ValuePtr &expr);
+
+    std::shared_ptr<EvalEnv> createChild();
+
+    static std::shared_ptr<EvalEnv> createGlobal();
 };
 
 #endif //MINI_LISP_EVAL_ENV_H

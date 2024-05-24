@@ -77,4 +77,16 @@ ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args)
     }
 }
 
+std::shared_ptr<EvalEnv> EvalEnv::createChild() {
+    auto child = std::make_shared<EvalEnv>();
+    child->parent = shared_from_this();
+    return child;
+}
+
+std::shared_ptr<EvalEnv> EvalEnv::createGlobal() {
+    auto global=EvalEnv();
+    global.parent = nullptr;
+    return global.shared_from_this();
+}
+
 
