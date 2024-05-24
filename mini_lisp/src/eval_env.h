@@ -20,6 +20,8 @@ public:
 
     ValuePtr eval(ValuePtr expr);
 
+    ValuePtr eval(const std::vector<ValuePtr>& expr);
+
     void defineBinding(const std::string &name, const ValuePtr &value);
 
     ValuePtr lookupBinding(const std::string &name) const;
@@ -31,6 +33,8 @@ public:
     std::shared_ptr<EvalEnv> createChild();
 
     static std::shared_ptr<EvalEnv> createGlobal();
+
+    std::vector<ValuePtr> evalList(const std::vector<ValuePtr> &expr);
 };
 
 #endif //MINI_LISP_EVAL_ENV_H

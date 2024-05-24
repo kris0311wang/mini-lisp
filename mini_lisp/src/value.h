@@ -141,5 +141,6 @@ public:
     LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body);
     LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env);
     std::string toString() const override; // 如前所述，返回 #<procedure> 即可
+    ValuePtr apply(const std::vector<ValuePtr> &args);
 };
 #endif //MINI_LISP_VALUE_H

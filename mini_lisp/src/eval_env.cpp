@@ -68,12 +68,39 @@ std::vector<ValuePtr> EvalEnv::evalList(const ValuePtr &expr) {
     return result;
 }
 
+std::vector<ValuePtr> EvalEnv::evalList(const std::vector<ValuePtr> &expr) {
+    if (expr.empty()) {
+        return {};
+    }
+    std::vector<ValuePtr> result;
+    std::ranges::transform(expr,
+                           std::back_inserter(result),
+                           [this](ValuePtr v) { return this->eval(std::move(v)); });
+    return result;
+}
+
 ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args) {
     if (typeid(*proc) == typeid(BuiltinProcValue)) {
         // 调用内置过程
         return std::static_pointer_cast<BuiltinProcValue>(proc)->func(args);
-    } else {
+    } else if(typeid(*proc)==typeid(LambdaValue)){
+        return std::static_pointer_cast<LambdaValue>(proc)->apply(args);
+    }
+    else {
         throw LispError("Unimplemented");
+    }
+}
+
+ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {
+    if (expr[0]->isSymbol()) {//如果第一个元素是符号
+        auto name = expr[0]->asSymbol();
+        if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
+            return SPECIAL_FORMS.at(*name)(std::vector<ValuePtr>(expr.begin()+1,expr.end()), *this);
+        } else {//如果不是特殊形式,调用apply函数
+            ValuePtr proc = lookupBinding(*name);
+            std::vector<ValuePtr> args = evalList(std::vector<ValuePtr>(expr.begin()+1,expr.end()));
+            return apply(proc, args);
+        }
     }
 }
 

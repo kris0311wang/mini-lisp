@@ -2,11 +2,12 @@
 // Created by 王愉博 on 24-5-23.
 //
 #include"value.h"
+#include "error.h"
 #include <sstream>
 #include <iomanip>
 #include <vector>
 #include <optional>
-
+#include"eval_env.h"
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
 }
@@ -178,4 +179,15 @@ LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> 
 
 LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env): params(std::move(params)), body(std::move(body)) {
     this->lambdaEnv = std::move(env);
+}
+
+ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
+    if (args.size() != params.size()) {
+        throw LispError("lambda: arguments number mismatch.");
+    }
+    for (size_t i = 0; i < params.size(); i++) {
+        lambdaEnv->defineBinding(params[i], args[i]);
+    }
+    ValuePtr result=lambdaEnv->eval(body);
+    return result;
 }
