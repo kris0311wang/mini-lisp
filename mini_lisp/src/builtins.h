@@ -15,6 +15,17 @@ ValuePtr add(const std::vector<ValuePtr> &params);
 
 ValuePtr print(const std::vector<ValuePtr> &params);
 
-void init_builtins();
+ValuePtr sub(const std::vector<ValuePtr> &params);
 
+ValuePtr greaterThan(const std::vector<ValuePtr> &params);
+
+ValuePtr lessThan(const std::vector<ValuePtr> &params);
+
+ValuePtr length(const std::vector<ValuePtr> &params);
+
+ValuePtr car(const std::vector<ValuePtr> &params);
+
+ValuePtr cdr(const std::vector<ValuePtr> &params);
+
+ValuePtr multiply(const std::vector<ValuePtr> &params);
 #endif  // MINI_LISP_BUILTINS_H

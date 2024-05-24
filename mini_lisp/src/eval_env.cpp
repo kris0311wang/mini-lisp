@@ -36,7 +36,6 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
 }
 
 EvalEnv::EvalEnv() : parent(nullptr) {//初始化符号表,将内置函数添加到符号表中,并将parent指针初始化为nullptr
-    init_builtins();
     for (auto &i: builtin_funcs) {
         defineBinding(i.first, i.second);
     }
