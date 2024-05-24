@@ -161,3 +161,9 @@ std::string BuiltinProcValue::toString() const {
 double NumericValue::getValue() const {
     return value;
 }
+
+std::string LambdaValue::toString() const {
+    return "#<procedure>";
+}
+
+LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body) : params(std::move(params)), body(std::move(body)) {}

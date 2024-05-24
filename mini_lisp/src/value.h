@@ -127,5 +127,13 @@ public:
 
     std::string toString() const override;
 };
-
+class LambdaValue : public Value {
+private:
+    std::vector<std::string> params;
+    std::vector<ValuePtr> body;
+    // [...]
+public:
+    LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body);
+    std::string toString() const override; // 如前所述，返回 #<procedure> 即可
+};
 #endif //MINI_LISP_VALUE_H

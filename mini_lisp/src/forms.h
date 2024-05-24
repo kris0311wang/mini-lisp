@@ -15,4 +15,5 @@ ValuePtr quoteForm(const std::vector<ValuePtr>& params, EvalEnv& env);//quote特
 ValuePtr ifForm(const std::vector<ValuePtr>& params, EvalEnv& env);//if特殊形式的函数
 ValuePtr andForm(const std::vector<ValuePtr>& params, EvalEnv& env);//and特殊形式的函数
 ValuePtr orForm(const std::vector<ValuePtr>& params, EvalEnv& env);//or特殊形式的函数
+ValuePtr lambdaForm(const std::vector<ValuePtr>& params, EvalEnv& env);//lambda特殊形式的函数
 #endif //MINI_LISP_FORMS_H
