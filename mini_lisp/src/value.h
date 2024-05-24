@@ -77,6 +77,8 @@ public:
     std::string toString() const override;
 
     std::shared_ptr<Value> toQuote () override;
+
+    std::vector<std::shared_ptr<Value>> toVector() override;
 };
 
 class PairValue : public Value {
@@ -115,6 +117,8 @@ public:
     std::string toString() const override;
 
     std::string internalToString() const override;
+
+    ValuePtr toQuote() override;
 };
 
 using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr> &);//内建函数的函数指针类型

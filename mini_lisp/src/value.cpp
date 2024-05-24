@@ -35,6 +35,10 @@ std::shared_ptr<Value> NilValue::toQuote(){
     return shared_from_this();
 }
 
+std::vector<std::shared_ptr<Value>> NilValue::toVector() {
+    return {};
+}
+
 bool Value::isNil() const {
     return typeid(*this) == typeid(NilValue);
 }
@@ -118,6 +122,10 @@ std::string StringValue::toString() const {
 
 std::string StringValue::internalToString() const {
     return value;
+}
+
+ValuePtr StringValue::toQuote() {
+    return shared_from_this();
 }
 
 
