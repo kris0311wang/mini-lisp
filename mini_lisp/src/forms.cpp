@@ -3,6 +3,8 @@
 //
 #include"forms.h"
 #include"error.h"
+#include"value.h"
+#include"eval_env.h"
 
 const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS{
         {"define", &defineForm},

@@ -5,9 +5,12 @@
 #ifndef MINI_LISP_EVAL_ENV_H
 #define MINI_LISP_EVAL_ENV_H
 
-#include "./value.h"
 #include <unordered_map>
-#include"builtins.h"
+#include <memory>
+#include <string>
+#include <vector>
+class Value;
+using ValuePtr = std::shared_ptr<Value>;
 
 class EvalEnv {
     std::unordered_map<std::string, ValuePtr> symbolTable;//unimplemented
@@ -21,7 +24,7 @@ public:
 
     ValuePtr lookupBinding(const std::string &name) const;
 
-    static static ValuePtr apply(const ValuePtr &proc, const std::vector<ValuePtr> &args);
+    static ValuePtr apply(const ValuePtr &proc, const std::vector<ValuePtr> &args);
 
     std::vector<ValuePtr> evalList(const ValuePtr &expr);
 };

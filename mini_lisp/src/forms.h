@@ -5,9 +5,13 @@
 #ifndef MINI_LISP_FORMS_H
 #define MINI_LISP_FORMS_H
 
-#include"value.h"
-#include"eval_env.h"
+#include <unordered_map>
+#include <vector>
+class Value;
+class EvalEnv;
 
+
+using ValuePtr = std::shared_ptr<Value>;
 using SpecialFormType = ValuePtr(const std::vector<ValuePtr> &, EvalEnv &);//定义一个函数指针类型
 extern const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS;//特殊形式的map
 ValuePtr defineForm(const std::vector<ValuePtr> &, EvalEnv &);

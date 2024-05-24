@@ -7,6 +7,9 @@
 #include<algorithm>
 #include<iterator>
 #include <utility>
+#include "./value.h"
+#include <unordered_map>
+#include"builtins.h"
 
 ValuePtr EvalEnv::eval(ValuePtr expr) {
     if (expr->isSelfEvaluating()) {
