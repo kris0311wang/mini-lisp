@@ -16,6 +16,10 @@ bool BooleanValue::getValue() const {
     return value;
 }
 
+ValuePtr BooleanValue::toQuote() {
+    return shared_from_this();
+}
+
 std::string NumericValue::toString() const {
     return isInt() ? std::to_string(static_cast<int>(value)) : std::to_string(value);
 }
@@ -172,6 +176,10 @@ std::string BuiltinProcValue::toString() const {
 
 double NumericValue::getValue() const {
     return value;
+}
+
+ValuePtr NumericValue::toQuote() {
+    return shared_from_this();
 }
 
 std::string LambdaValue::toString() const {

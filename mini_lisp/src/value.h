@@ -58,6 +58,8 @@ public:
     explicit BooleanValue(const bool &value) : value(value) {}
 
     std::string toString() const override;
+
+    ValuePtr toQuote() override;
 };
 
 class NumericValue : public Value {
@@ -70,6 +72,8 @@ public:
     std::string toString() const override;
 
     double getValue() const;
+
+    ValuePtr toQuote() override;
 };
 
 class NilValue : public Value {
