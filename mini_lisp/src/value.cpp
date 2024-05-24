@@ -63,13 +63,16 @@ bool Value::isString() const {
 bool Value::isPair() const {
     return typeid(*this) == typeid(PairValue);
 }
+bool Value::isBuiltin() const {
+    return typeid(*this)==typeid(BuiltinProcValue);
+}
 
 std::string Value::internalToString() const {
     return toString();
 }
 
 bool Value::isSelfEvaluating() const {
-    return isNum() || isBool() || isString();
+    return isNum() || isBool() || isString()|| typeid(*this)==typeid(BuiltinProcValue)||typeid(*this)==typeid(LambdaValue) ;
 }
 
 std::vector<std::shared_ptr<Value>> Value::toVector() {
@@ -182,8 +185,13 @@ LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> 
 }
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
-    if (args.size() != params.size()) {
-        throw LispError("lambda: arguments number mismatch.");
+    if (args.size() < params.size()) {//创建子表达式
+        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body, lambdaEnv);
+        for(auto i=0;i<args.size();i++){//将参数绑定到子表达式的环境中
+            childLambda->lambdaEnv->defineBinding(params[i],args[i]);
+            childLambda->params.erase(childLambda->params.begin());//删除已经绑定的参数
+        }
+        return childLambda;
     }
     for (size_t i = 0; i < params.size(); i++) {
         lambdaEnv->defineBinding(params[i], args[i]);

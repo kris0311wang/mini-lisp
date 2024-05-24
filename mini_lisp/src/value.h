@@ -44,6 +44,8 @@ public:
     virtual std::shared_ptr<Value> toQuote();
 
     virtual std::optional<double> asNumber() const;
+
+    virtual bool isBuiltin() const;
 };
 
 using ValuePtr = std::shared_ptr<Value>;

@@ -17,15 +17,12 @@ const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS{
 };
 
 ValuePtr defineForm(const std::vector<ValuePtr> &args, EvalEnv &env) {
-    if (args.size() != 2) {
-        throw LispError("define form must have 2 arguments");
-    }
     if (args[0]->isSymbol()) {
         env.defineBinding(*args[0]->asSymbol(), env.eval(args[1]));
         return std::make_shared<NilValue>();
     } else if(args[0]->isPair()&&args[1]->isPair()) {//lambda形式的定义
         auto paramsVector = args[0]->toVector();
-        auto bodyVector = args[1]->toVector();
+        auto bodyVector = std::vector<ValuePtr>(args.begin()+1,args.end());
         if(!paramsVector[0]->isSymbol()){
             throw LispError("lambda form's first argument must be a list of symbols.");
         }
