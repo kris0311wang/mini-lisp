@@ -85,8 +85,7 @@ std::shared_ptr<EvalEnv> EvalEnv::createChild() {
 
 std::shared_ptr<EvalEnv> EvalEnv::createGlobal() {
     auto global=EvalEnv();
-    global.parent = nullptr;
-    return global.shared_from_this();
+    return std::make_shared<EvalEnv>(global);
 }
 
 
