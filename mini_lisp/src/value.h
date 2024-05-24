@@ -11,7 +11,7 @@
 #include<utility>
 #include<vector>
 #include<optional>
-
+class EvalEnv;
 class Value : public std::enable_shared_from_this<Value> {
 public:
 
@@ -135,9 +135,11 @@ class LambdaValue : public Value {
 private:
     std::vector<std::string> params;
     std::vector<ValuePtr> body;
+    std::shared_ptr<EvalEnv> lambdaEnv;
     // [...]
 public:
     LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body);
+    LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env);
     std::string toString() const override; // 如前所述，返回 #<procedure> 即可
 };
 #endif //MINI_LISP_VALUE_H

@@ -39,7 +39,7 @@ ValuePtr defineForm(const std::vector<ValuePtr> &args, EvalEnv &env) {
                 throw LispError("lambda form's first argument must be a list of symbols.");
             }
         }
-        env.defineBinding(name,std::make_shared<LambdaValue>(paramNamesStr,bodyVector));
+        env.defineBinding(name,std::make_shared<LambdaValue>(paramNamesStr,bodyVector,env.createChild()));
         return std::make_shared<NilValue>();
     }else {
             throw LispError("unimplemented define form");
@@ -106,5 +106,5 @@ ValuePtr lambdaForm(const std::vector<ValuePtr>& params, EvalEnv& env){
             throw LispError("lambda form's first argument must be a list of symbols.");
         }
     }
-    return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector());
+    return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector(),env.createChild());
 }

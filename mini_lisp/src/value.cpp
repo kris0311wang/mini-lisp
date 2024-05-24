@@ -174,4 +174,8 @@ std::string LambdaValue::toString() const {
     return "#<procedure>";
 }
 
-LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body) : params(std::move(params)), body(std::move(body)) {}
+LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body): params(std::move(params)), body(std::move(body)) {}
+
+LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env): params(std::move(params)), body(std::move(body)) {
+    this->lambdaEnv = std::move(env);
+}
