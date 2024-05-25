@@ -46,6 +46,7 @@ public:
     virtual std::optional<double> asNumber() const;
 
     virtual bool isBuiltin() const;
+
 };
 
 using ValuePtr = std::shared_ptr<Value>;
@@ -93,7 +94,7 @@ class PairValue : public Value {
 public:
     explicit PairValue(const ValuePtr &car, const ValuePtr &cdr) : car(car->shared_from_this()),
                                                                    cdr(cdr->shared_from_this()) {}
-
+    PairValue(const std::vector<ValuePtr> &values);
     std::string internalToString() const override;
 
     std::string toString() const override;

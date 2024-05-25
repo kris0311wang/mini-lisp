@@ -115,7 +115,7 @@ ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的�
     }else if(expr[0]->isBuiltin()){//如果第一个元素是内置函数,调用
         return apply(expr[0], evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end())), *this);
     }
-    else if(expr[0]->isPair()&&expr.size()==1){
+    else if(expr[0]->isPair()&&expr.size()==1){//如果第一个元素是表达式，计算
         return eval(expr[0]);
     }else if(expr[0]->isNil()){//如果第一个元素是空表,则弹出
         return eval(std::vector<ValuePtr>(expr.begin()+1,expr.end()));

@@ -3,6 +3,7 @@
 //
 #include"value.h"
 #include "error.h"
+#include <ranges>
 #include <sstream>
 #include <iomanip>
 #include <vector>
@@ -71,6 +72,8 @@ bool Value::isBuiltin() const {
     return typeid(*this)==typeid(BuiltinProcValue);
 }
 
+
+
 std::string Value::internalToString() const {
     return toString();
 }
@@ -91,6 +94,7 @@ std::string PairValue::internalToString() const {
     } else if(cdr) {
         return car->internalToString() + " " + cdr->internalToString();
     }
+    throw LispError("PairValue internalToString error");
 }
 
 std::string PairValue::toString() const {
@@ -120,6 +124,16 @@ ValuePtr PairValue::getCdr() const {
 
 std::shared_ptr<Value> PairValue::toQuote() {
     return std::make_shared<PairValue>(car->toQuote(), cdr->toQuote());
+}
+
+PairValue::PairValue(const std::vector<ValuePtr> &values) {
+    ValuePtr result=std::make_shared<NilValue>();
+    for(const auto & value : std::ranges::reverse_view(values)){
+        result=std::make_shared<PairValue>(value,result);
+    }
+    auto pairResult=std::dynamic_pointer_cast<PairValue>(result);
+    this->car=pairResult->car;
+    this->cdr=pairResult->cdr;
 }
 
 std::string StringValue::toString() const {
@@ -194,17 +208,25 @@ LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> 
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     if (args.size() < params.size()) {//创建子表达式
-        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body, lambdaEnv);
+        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body, lambdaEnv->createChild());
         for(auto i=0;i<args.size();i++){//将参数绑定到子表达式的环境中
             childLambda->lambdaEnv->defineBinding(params[i],args[i]);
             childLambda->params.erase(childLambda->params.begin());//删除已经绑定的参数
         }
         return childLambda;
     }
+    ValuePtr result;
     for (size_t i = 0; i < params.size(); i++) {
         lambdaEnv->defineBinding(params[i], args[i]);
+    }if(body.size()==1){
+        result=lambdaEnv->eval(body);
+    }else {
+        auto resultVector=std::vector<ValuePtr>();
+        for(auto i=0;i<body.size();i++){
+            resultVector.push_back(lambdaEnv->eval(body[i]));
+        }
+        result=lambdaEnv->eval(resultVector);
     }
-    ValuePtr result=lambdaEnv->eval(body);
     return result;
 }
 
