@@ -36,4 +36,8 @@ ValuePtr display(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &
 ValuePtr displayln(const std::vector<ValuePtr> &params, EvalEnv &env);
 
 ValuePtr error(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env);
+
+ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 #endif  // MINI_LISP_BUILTINS_H

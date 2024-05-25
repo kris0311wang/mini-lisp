@@ -207,3 +207,7 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     ValuePtr result=lambdaEnv->eval(body);
     return result;
 }
+
+ValuePtr SymbolValue::toQuote() {
+    return shared_from_this();
+}

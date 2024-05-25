@@ -18,7 +18,9 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"apply", std::make_shared<BuiltinProcValue>("apply", apply)},
         {"display", std::make_shared<BuiltinProcValue>("display", display)},
         {"displayln", std::make_shared<BuiltinProcValue>("displayln", displayln)},
-        {"error", std::make_shared<BuiltinProcValue>("error", error)}
+        {"error", std::make_shared<BuiltinProcValue>("error", error)},
+        {"eval", std::make_shared<BuiltinProcValue>("eval", eval)},
+        {"cons", std::make_shared<BuiltinProcValue>("cons", cons)}
 };  // 内建函数的map
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv& env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
     double result = 0;
@@ -135,4 +137,15 @@ ValuePtr displayln(const std::vector<ValuePtr> &params, EvalEnv &env) {//display
 }
 ValuePtr error(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env){
     throw LispError(params[0]->toString());
+}
+
+ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    return env.eval(params);
+}
+
+ValuePtr cons(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=2){
+        throw LispError("cons: arguments must be 2.");
+    }
+    return std::make_shared<PairValue>(params[0], params[1]);
 }

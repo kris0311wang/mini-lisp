@@ -113,6 +113,8 @@ public:
     explicit SymbolValue(std::string value) : value(std::move(value)) {}
 
     std::string toString() const override;
+
+    ValuePtr toQuote() override;
 };
 
 class StringValue : public Value {
