@@ -30,4 +30,6 @@ ValuePtr cdr(const std::vector<ValuePtr> &params, EvalEnv &env);
 ValuePtr multiply(const std::vector<ValuePtr> &params, EvalEnv &env);
 
 ValuePtr apply(const std::vector<ValuePtr> &params, EvalEnv &env);
+
+ValuePtr display(const std::vector<ValuePtr> &params, EvalEnv &env);
 #endif  // MINI_LISP_BUILTINS_H

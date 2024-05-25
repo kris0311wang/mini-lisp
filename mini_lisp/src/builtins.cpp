@@ -15,7 +15,8 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"car", std::make_shared<BuiltinProcValue>("car", car)},
         {"cdr", std::make_shared<BuiltinProcValue>("cdr", cdr)},
         {"*", std::make_shared<BuiltinProcValue>("*", multiply)},
-        {"apply", std::make_shared<BuiltinProcValue>("apply", apply)}
+        {"apply", std::make_shared<BuiltinProcValue>("apply", apply)},
+        {"display", std::make_shared<BuiltinProcValue>("display", display)},
 };  // 内建函数的map
 ValuePtr add(const std::vector<ValuePtr> &params,EvalEnv& env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
     double result = 0;
@@ -111,4 +112,16 @@ ValuePtr apply(const std::vector<ValuePtr> & params,EvalEnv& env){
         throw LispError("apply: arguments must be 2.");
     }
     return env.apply(params[0],params[1]->toVector(),env);
+}
+
+ValuePtr display(const std::vector<ValuePtr> &params,EvalEnv& env){
+    if(params.size()!=1){
+        throw LispError("display: arguments must be 1.");
+    }
+    if(params[0]->isString()){
+        std::cout<<params[0]->internalToString()<<std::endl;
+    }else{
+        std::cout<<params[0]->toString()<<std::endl;
+    }
+    return std::make_shared<NilValue>();
 }

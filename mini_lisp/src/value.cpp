@@ -171,7 +171,7 @@ std::shared_ptr<Value> BuiltinProcValue::toQuote() {
 }
 
 std::string BuiltinProcValue::toString() const {
-    return "#<procedure>";
+    return "#<procedure:"+name+">";//改进：返回过程的名字
 }
 
 double NumericValue::getValue() const {
