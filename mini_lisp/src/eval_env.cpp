@@ -24,7 +24,7 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
             auto name = pairExpr->getCar()->asSymbol();
             if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
                 return SPECIAL_FORMS.at(*name)(pairExpr->getCdr()->toVector(), *this);
-            } else {//如果不是特殊形式,调用apply函数
+            } else {//如果不是特殊形式,则是过程，调用apply函数
                 ValuePtr proc = lookupBinding(*name);//name代表过程名
                 std::vector<ValuePtr> args = evalList(pairExpr->getCdr());//递归eval得到最简参数表
                 return apply(proc, args, *this);
@@ -88,7 +88,7 @@ std::vector<ValuePtr> EvalEnv::evalList(const std::vector<ValuePtr> &expr) {//�
 ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args, EvalEnv &env) {
     if (typeid(*proc) == typeid(BuiltinProcValue)) {
         // 调用内置过程
-        return std::static_pointer_cast<BuiltinProcValue>(proc)->func(args);
+        return std::static_pointer_cast<BuiltinProcValue>(proc)->func(args, env);
     } else if(typeid(*proc)==typeid(LambdaValue)){
         return std::static_pointer_cast<LambdaValue>(proc)->apply(args);
     }

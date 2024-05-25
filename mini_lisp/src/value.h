@@ -127,7 +127,7 @@ public:
     ValuePtr toQuote() override;
 };
 
-using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr> &);//内建函数的函数指针类型
+using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr> &,EvalEnv& env);//内建函数的函数指针类型
 class BuiltinProcValue : public Value {
 public:
     std::string name;
