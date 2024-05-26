@@ -72,14 +72,16 @@ bool Value::isBuiltin() const {
     return typeid(*this)==typeid(BuiltinProcValue);
 }
 
-
+bool Value::isLambda() const{
+    return typeid(*this)==typeid(LambdaValue);
+}
 
 std::string Value::internalToString() const {
     return toString();
 }
 
 bool Value::isSelfEvaluating() const {
-    return isNum() || isBool() || isString()|| typeid(*this)==typeid(BuiltinProcValue)||typeid(*this)==typeid(LambdaValue) ;
+    return isNum() || isBool() || isString()||isBuiltin()||typeid(*this)==typeid(LambdaValue);
 }
 
 std::vector<std::shared_ptr<Value>> Value::toVector() {

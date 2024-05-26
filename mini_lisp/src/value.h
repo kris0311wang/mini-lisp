@@ -47,6 +47,7 @@ public:
 
     virtual bool isBuiltin() const;
 
+    bool isLambda() const;
 };
 
 using ValuePtr = std::shared_ptr<Value>;
