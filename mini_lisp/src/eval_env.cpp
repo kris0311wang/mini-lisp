@@ -24,8 +24,8 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
             auto name = pairExpr->getCar()->asSymbol();
             if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
                 return SPECIAL_FORMS.at(*name)(pairExpr->getCdr()->toVector(), *this);
-            } else {//如果不是特殊形式,则是过程，调用apply函数
-                ValuePtr proc = lookupBinding(*name);//name代表过程名
+            } else {//如果不是特殊形式,则是过程，解析出符号,然后解析参数表，最后调用apply函数
+                ValuePtr proc = eval(pairExpr->getCar());
                 std::vector<ValuePtr> args = evalList(pairExpr->getCdr());//递归eval得到最简参数表
                 return apply(proc, args, *this);
             }
@@ -93,7 +93,7 @@ ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args,
         return std::static_pointer_cast<LambdaValue>(proc)->apply(args);
     }
     else {
-        throw LispError("Unimplemented");
+        throw LispError("apply not a procedure");
     }
 }
 
