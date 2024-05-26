@@ -78,6 +78,10 @@ bool Value::isLambda() const {
     return typeid(*this) == typeid(LambdaValue);
 }
 
+bool Value::isInt() const{
+    return false;
+}
+
 std::string Value::internalToString() const {
     return toString();
 }
@@ -182,6 +186,17 @@ std::optional<bool> Value::asBool() {
         return std::dynamic_pointer_cast<BooleanValue>(shared_from_this())->getValue();
     }
     return true;
+}
+
+bool Value::isList() const {
+    if(isNil()){
+        return true;
+    }
+    if(isPair()){
+        auto pairvalue=std::static_pointer_cast<const PairValue>(std::move(shared_from_this()));
+        return pairvalue->getCdr()->isList();
+    }
+    return false;
 }
 
 std::shared_ptr<Value> BuiltinProcValue::toQuote() {

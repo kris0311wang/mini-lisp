@@ -24,6 +24,9 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"cons",      std::make_shared<BuiltinProcValue>("cons", cons)},
         {"exit",      std::make_shared<BuiltinProcValue>("exit", builtinExit)},
         {"newline",   std::make_shared<BuiltinProcValue>("newline", newline)},
+        {"atom?", std::make_shared<BuiltinProcValue>("atom?", atomCheck)},
+        {"boolean?", std::make_shared<BuiltinProcValue>("boolean?", booleanCheck)},
+        {"integer?", std::make_shared<BuiltinProcValue>("integer?", intergerCheck)}
 };  // 内建函数的map
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
@@ -142,7 +145,7 @@ ValuePtr displayln(const std::vector<ValuePtr> &params, EvalEnv &env) {//display
 }
 
 ValuePtr error(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if(params.size() ==0){
+    if(params.empty()){
         throw LispError("default error message");
     }else if(params.size() != 1){
         throw LispError("error: arguments more than 1.");
@@ -154,30 +157,72 @@ ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env) {
     return env.eval(params);
 }
 
-ValuePtr cons(const std::vector<ValuePtr> &params, EvalEnv &env) {
+ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     if (params.size() != 2) {
         throw LispError("cons: arguments must be 2.");
     }
     return std::make_shared<PairValue>(params[0], params[1]);
 }
 
-ValuePtr builtinExit(const std::vector<ValuePtr> &params,EvalEnv& env){
-    if(params.size() == 0){
+ValuePtr builtinExit(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv& env){
+    if(params.empty()){
         exit(0);
     }
     if(params.size() == 1){
-        if(params[0]->isNum()){
-            exit(*params[0]->asNumber());
+        if(params[0]->isInt()){
+            exit(*params[0]->asNumber());  // NOLINT(*-narrowing-conversions)
         }
     }
-    throw LispError("exit: arguments must be a number.");
+    throw LispError("exit: arguments must be an integer");
 }
 
-ValuePtr newline(const std::vector<ValuePtr> &params,EvalEnv& env){
-    if(params.size() != 0){
+ValuePtr newline(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv& env){
+    if(!params.empty()){
         throw LispError("newline: arguments must be 0.");
     }
     std::cout << std::endl;
     return std::make_shared<NilValue>();
+}
+
+ValuePtr atomCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env){
+    if(params.size() != 1){
+        throw LispError("atom?: arguments must be 1.");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isSelfEvaluating()||params[0]->isNil()||params[0]->isSymbol());
+}
+
+ValuePtr booleanCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
+    if(params.size() != 1){
+        throw LispError("boolean?: arguments must be 1.");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isBool());
+}
+
+ValuePtr intergerCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env){
+    if(params.size() != 1){
+        throw LispError("integer?: arguments must be 1.");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isInt());
+}
+
+ValuePtr listCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env){
+    if(params.size() != 1){
+        throw LispError("list?: arguments must be 1.");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isPair());
+}
+
+ValuePtr numberCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env){
+    if(params.size() != 1){
+        throw LispError("number?: arguments must be 1.");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isNum());
+}
+
+ValuePtr nullCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env){
+    if(params.size() != 1){
+        throw LispError("null?: arguments must be 1.");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isNil());
 }
 

@@ -39,9 +39,18 @@ ValuePtr error(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &en
 
 ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env);
 
-ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] [[maybe_unused]] EvalEnv &env);
 
-ValuePtr builtinExit(const std::vector<ValuePtr> &params,EvalEnv& env);
+ValuePtr builtinExit(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv& env);
 
-ValuePtr newline(const std::vector<ValuePtr> &params,EvalEnv& env);
+ValuePtr newline(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv& env);
+
+ValuePtr atomCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr booleanCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] [[maybe_unused]] EvalEnv &env);
+
+ValuePtr intergerCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr listCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
 #endif  // MINI_LISP_BUILTINS_H

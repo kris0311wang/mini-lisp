@@ -18,8 +18,8 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
         return expr;
     } else if (expr->isNil()) {//计算空表抛出异常
         throw LispError("Evaluating nil is prohibited.");
-    } else if (expr->isSymbol()) {//如果是符号,则在符号表中查找，直到得到一个自求值类型的值
-        return eval(lookupBinding(*expr->asSymbol()));
+    } else if (expr->isSymbol()) {//如果是符号,则在符号表中查找
+        return lookupBinding(*expr->asSymbol());
     }  else if (expr->isPair()) {//如果是对子类型，第一个元素一共有两种情况：特殊形式或者过程。由于特殊形式不能被命名，所以先考虑特殊形式，剩下的就是过程
         auto pairExpr = std::dynamic_pointer_cast<PairValue>(expr);
         if (pairExpr->getCar()->isSymbol()) {//如果第一个元素是符号
@@ -98,12 +98,7 @@ ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的�
     } else if (expr[0]->isNil()) {//如果第一个元素是空表,则弹出
         return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
     }else if (expr.size() == 1 ) {//移植
-        if(expr[0]->isSelfEvaluating()||expr[0]->isBuiltin()||expr[0]->isLambda()){
-            return expr[0];
-        }
-        else {
-            return eval(expr[0]);
-        }
+        return eval(expr[0]);
     } else if (expr[0]->isSymbol()) {//如果第一个元素是符号
         auto name = expr[0]->asSymbol();
         if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
@@ -118,7 +113,7 @@ ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的�
     } else if (expr[0]->isPair() && expr.size() == 1) {//如果第一个元素是表达式，计算
         return eval(expr[0]);
     }
-    throw LispError("evalvector Unimplemented");
+    throw LispError("evalVector Unimplemented");
 }
 
 std::shared_ptr<EvalEnv> EvalEnv::createChild() {

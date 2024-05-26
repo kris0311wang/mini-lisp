@@ -39,6 +39,8 @@ public:
 
     bool isPair() const;
 
+    bool isList() const;
+
     bool isSelfEvaluating() const;
 
     virtual std::vector<std::shared_ptr<Value>> toVector();
@@ -48,6 +50,8 @@ public:
     virtual std::optional<double> asNumber() const;
 
     virtual bool isBuiltin() const;
+
+    virtual bool isInt() const;
 
     bool isLambda() const;
 };
@@ -78,6 +82,7 @@ public:
     double getValue() const;
 
     ValuePtr toQuote() override;
+
 };
 
 class NilValue : public Value {
@@ -95,8 +100,7 @@ class PairValue : public Value {
     ValuePtr car;
     ValuePtr cdr;
 public:
-    explicit PairValue(const ValuePtr &car, const ValuePtr &cdr) : car(car->shared_from_this()),
-                                                                   cdr(cdr->shared_from_this()) {}
+    explicit PairValue(const ValuePtr &car, const ValuePtr &cdr) : car(car->shared_from_this()),cdr(cdr->shared_from_this()) {}
 
     PairValue(const std::vector<ValuePtr> &values);
 
