@@ -71,5 +71,6 @@ ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env
 
 ValuePtr map(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
+ValuePtr reduce(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
 #endif  // MINI_LISP_BUILTINS_H

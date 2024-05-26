@@ -37,6 +37,7 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"append",std::make_shared<BuiltinProcValue>("append", append)},
         {"list",std::make_shared<BuiltinProcValue>("list", list)},
         {"map",std::make_shared<BuiltinProcValue>("map", map)},
+        {"reduce",std::make_shared<BuiltinProcValue>("reduce", reduce)}
 };  // 内建函数的map
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
@@ -306,6 +307,24 @@ for(const auto &i: list){
         result.push_back(EvalEnv::apply(proc, {i}, env));
     }
     return std::make_shared<PairValue>(result);
+}
 
+ValuePtr reduce(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=2){
+        throw LispError("reduce: arguments must be 2.");
+    }
+    if(!params[0]->isBuiltin()){
+        throw LispError("reduce: first argument must be a procedure.");
+    }
+    if(!params[1]->isList()){
+        throw LispError("reduce: second argument must be a list.");
+    }
+    const auto& proc = params[0];
+    auto list=std::static_pointer_cast<PairValue>(params[1]);
+    if(list->getCdr()->isNil()){
+        return list->getCar();
+    }
+    auto result=EvalEnv::apply(proc,{list->getCar(),reduce({proc,list->getCdr()},env)},env);
+    return result;
 }
 
