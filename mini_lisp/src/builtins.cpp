@@ -36,6 +36,7 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"symbol?",std::make_shared<BuiltinProcValue>("symbol?", symbolCheck)},
         {"append",std::make_shared<BuiltinProcValue>("append", append)},
         {"list",std::make_shared<BuiltinProcValue>("list", list)},
+        {"map",std::make_shared<BuiltinProcValue>("map", map)},
 };  // 内建函数的map
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
@@ -60,8 +61,14 @@ ValuePtr print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &en
 
 
 ValuePtr sub(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 2) {
+    if (params.size() != 2 && params.size() != 1){
         throw LispError("sub: arguments must be 2 numbers.");
+    }
+    if(params.size() == 1){
+        if(!params[0]->isNum()){
+            throw LispError("sub: arguments must be numbers.");
+        }
+        return std::make_shared<NumericValue>(-*params[0]->asNumber());
     }
     if (!(params[0]->isNum() && params[1]->isNum())) {
         throw LispError("sub: arguments must be numbers.");
@@ -279,5 +286,26 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
 
 ValuePtr list(const std::vector<ValuePtr> &params, EvalEnv &env) {
     return std::make_shared<PairValue>(params);
+}
+
+ValuePtr map(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size() != 2){
+        throw LispError("map: arguments must be 2.");
+    }
+    if(!params[0]->isBuiltin()){
+        throw LispError("map: first argument must be a procedure.");
+    }
+    if(!params[1]->isList()){
+        throw LispError("map: second argument must be a list.");
+    }
+    const auto& proc = params[0];
+    auto list = params[1]->toVector();
+    std::vector<ValuePtr> result;
+    result.reserve(list.size());//预留空间(clang-tidy)
+for(const auto &i: list){
+        result.push_back(EvalEnv::apply(proc, {i}, env));
+    }
+    return std::make_shared<PairValue>(result);
+
 }
 

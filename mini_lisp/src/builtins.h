@@ -69,5 +69,7 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
 
 ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
+ValuePtr map(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
 
 #endif  // MINI_LISP_BUILTINS_H
