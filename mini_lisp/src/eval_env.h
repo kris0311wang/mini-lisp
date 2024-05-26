@@ -9,18 +9,20 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 class Value;
+
 using ValuePtr = std::shared_ptr<Value>;
 
-class EvalEnv :public std::enable_shared_from_this<EvalEnv>{
+class EvalEnv : public std::enable_shared_from_this<EvalEnv> {
     std::unordered_map<std::string, ValuePtr> symbolTable;//unimplemented
-    std::shared_ptr<EvalEnv> parent=nullptr;
+    std::shared_ptr<EvalEnv> parent = nullptr;
 public:
     EvalEnv();
 
     ValuePtr eval(ValuePtr expr);
 
-    ValuePtr eval(const std::vector<ValuePtr>& expr);
+    ValuePtr eval(const std::vector<ValuePtr> &expr);
 
     void defineBinding(const std::string &name, const ValuePtr &value);
 

@@ -40,4 +40,5 @@ ValuePtr error(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &en
 ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env);
 
 ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
 #endif  // MINI_LISP_BUILTINS_H

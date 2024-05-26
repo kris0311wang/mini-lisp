@@ -6,9 +6,13 @@
 #define MINI_LISP_PARSER_H
 
 #include <deque>
+
 class Token;
+
 using TokenPtr = std::unique_ptr<Token>;
+
 class Value;
+
 using ValuePtr = std::shared_ptr<Value>;
 
 class Parser {

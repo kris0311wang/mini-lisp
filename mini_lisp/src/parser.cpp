@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 //
 // Created by 王愉博 on 24-5-23.
 //
@@ -5,6 +7,7 @@
 #include "error.h"
 #include "token.h"
 #include "value.h"
+
 ValuePtr Parser::parse() {
     auto token = std::move(tokens.front());
     tokens.pop_front();
@@ -71,3 +74,5 @@ ValuePtr Parser::parseTails() {
 }
 
 Parser::Parser(std::deque<TokenPtr> tokens) : tokens(std::move(tokens)) {}
+
+#pragma clang diagnostic pop

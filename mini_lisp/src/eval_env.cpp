@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 //
 // Created by 王愉博 on 24-5-23.
 //
@@ -12,31 +14,25 @@
 #include"builtins.h"
 
 ValuePtr EvalEnv::eval(ValuePtr expr) {
-    if (expr->isSelfEvaluating()) {//递归结束条件：得到一个自求值类型的值
+    if (expr->isSelfEvaluating()||expr->isBuiltin()||expr->isLambda()) {//递归结束条件：得到一个自求值类型的值,或者得到过程量
         return expr;
     } else if (expr->isNil()) {//计算空表抛出异常
         throw LispError("Evaluating nil is prohibited.");
     } else if (expr->isSymbol()) {//如果是符号,则在符号表中查找，直到得到一个自求值类型的值
         return eval(lookupBinding(*expr->asSymbol()));
-    } else if (expr->isPair()) {//如果是对子类型，考虑到特殊形式，分类讨论
+    }  else if (expr->isPair()) {//如果是对子类型，第一个元素一共有两种情况：特殊形式或者过程。由于特殊形式不能被命名，所以先考虑特殊形式，剩下的就是过程
         auto pairExpr = std::dynamic_pointer_cast<PairValue>(expr);
         if (pairExpr->getCar()->isSymbol()) {//如果第一个元素是符号
             auto name = pairExpr->getCar()->asSymbol();
             if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
                 return SPECIAL_FORMS.at(*name)(pairExpr->getCdr()->toVector(), *this);
-            } else {//如果不是特殊形式,则是过程，解析出符号,然后解析参数表，最后调用apply函数
-                ValuePtr proc = eval(pairExpr->getCar());
-                std::vector<ValuePtr> args = evalList(pairExpr->getCdr());//递归eval得到最简参数表
-                return apply(proc, args, *this);
             }
-        }else if(pairExpr->getCar()->isBuiltin()){//如果第一个元素是内置函数,调用
-            return apply(pairExpr->getCar(), evalList(pairExpr->getCdr()), *this);
-        }
-        else if(pairExpr->getCar()->isPair()){//如果第一个元素是表达式，计算
-            return eval(evalList(expr));
-        }
-        throw LispError("Unimplemented123");
-    } else {
+        } //如果不是特殊形式,则是过程，解析出过程,然后解析参数表，最后调用apply函数
+        ValuePtr proc = eval(pairExpr->getCar());
+        std::vector<ValuePtr> args = evalList(pairExpr->getCdr());//递归eval得到最简参数表
+        return apply(proc, args, *this);
+    }
+    else {
         throw LispError("Unimplemented");
     }
 }
@@ -89,49 +85,53 @@ ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args,
     if (proc->isBuiltin()) {
         // 调用内置过程
         return std::static_pointer_cast<BuiltinProcValue>(proc)->func(args, env);
-    } else if(proc->isLambda()){
+    } else if (proc->isLambda()) {
         return std::static_pointer_cast<LambdaValue>(proc)->apply(args);
-    }
-    else {
+    } else {
         throw LispError("apply not a procedure");
     }
 }
 
 ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的计算，仅内部计算使用
-    if(expr.empty()){
+    if (expr.empty()) {//如果表达式为空,返回空表，递归结束条件之一，其余情况通过递归计算第一个元素得到
         return std::make_shared<NilValue>();
-    }else if(expr.size()==1 && expr[0]->isSelfEvaluating()){
-        return expr[0];
-    }
-    else if (expr[0]->isSymbol()) {//如果第一个元素是符号
+    } else if (expr[0]->isNil()) {//如果第一个元素是空表,则弹出
+        return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
+    }else if (expr.size() == 1 ) {//移植
+        if(expr[0]->isSelfEvaluating()||expr[0]->isBuiltin()||expr[0]->isLambda()){
+            return expr[0];
+        }
+        else {
+            return eval(expr[0]);
+        }
+    } else if (expr[0]->isSymbol()) {//如果第一个元素是符号
         auto name = expr[0]->asSymbol();
         if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
-            return SPECIAL_FORMS.at(*name)(std::vector<ValuePtr>(expr.begin()+1,expr.end()), *this);
-        } else {//如果不是特殊形式,调用apply函数
+            return SPECIAL_FORMS.at(*name)(std::vector<ValuePtr>(expr.begin() + 1, expr.end()), *this);
+        } else {//如果不是特殊形式,那么第一个元素是过程，调用apply函数
             ValuePtr proc = eval(expr[0]);
-            std::vector<ValuePtr> args = evalList(std::vector<ValuePtr>(expr.begin()+1,expr.end()));
+            std::vector<ValuePtr> args = evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
             return apply(proc, args, *this);
         }
-    }else if(expr[0]->isBuiltin()){//如果第一个元素是内置函数,调用
+    } else if (expr[0]->isBuiltin()) {//如果第一个元素是内置函数,调用
         return apply(expr[0], evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end())), *this);
-    }
-    else if(expr[0]->isPair()&&expr.size()==1){//如果第一个元素是表达式，计算
+    } else if (expr[0]->isPair() && expr.size() == 1) {//如果第一个元素是表达式，计算
         return eval(expr[0]);
-    }else if(expr[0]->isNil()){//如果第一个元素是空表,则弹出
-        return eval(std::vector<ValuePtr>(expr.begin()+1,expr.end()));
     }
     throw LispError("evalvector Unimplemented");
 }
 
 std::shared_ptr<EvalEnv> EvalEnv::createChild() {
-    auto child =EvalEnv();
+    auto child = EvalEnv();
     child.parent = shared_from_this();
     return std::make_shared<EvalEnv>(child);
 }
 
 std::shared_ptr<EvalEnv> EvalEnv::createGlobal() {
-    auto global=EvalEnv();
+    auto global = EvalEnv();
     return std::make_shared<EvalEnv>(global);
 }
 
 
+
+#pragma clang diagnostic pop

@@ -11,7 +11,9 @@
 #include<utility>
 #include<vector>
 #include<optional>
+
 class EvalEnv;
+
 class Value : public std::enable_shared_from_this<Value> {
 public:
 
@@ -84,7 +86,7 @@ public:
 
     std::string toString() const override;
 
-    std::shared_ptr<Value> toQuote () override;
+    std::shared_ptr<Value> toQuote() override;
 
     std::vector<std::shared_ptr<Value>> toVector() override;
 };
@@ -95,7 +97,9 @@ class PairValue : public Value {
 public:
     explicit PairValue(const ValuePtr &car, const ValuePtr &cdr) : car(car->shared_from_this()),
                                                                    cdr(cdr->shared_from_this()) {}
+
     PairValue(const std::vector<ValuePtr> &values);
+
     std::string internalToString() const override;
 
     std::string toString() const override;
@@ -131,7 +135,7 @@ public:
     ValuePtr toQuote() override;
 };
 
-using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr> &,EvalEnv& env);//内建函数的函数指针类型
+using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr> &, EvalEnv &env);//内建函数的函数指针类型
 class BuiltinProcValue : public Value {
 public:
     std::string name;
@@ -141,6 +145,7 @@ public:
 
     std::string toString() const override;
 };
+
 class LambdaValue : public Value {
 private:
     std::vector<std::string> params;
@@ -149,8 +154,11 @@ private:
     // [...]
 public:
     LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body);
+
     LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env);
+
     std::string toString() const override; // 如前所述，返回 #<procedure> 即可
     ValuePtr apply(const std::vector<ValuePtr> &args);
 };
+
 #endif //MINI_LISP_VALUE_H

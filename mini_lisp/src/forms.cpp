@@ -8,44 +8,44 @@
 
 const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS{
         {"define", &defineForm},
-        {"if", &ifForm},
-        {"and",&andForm},
-        {"or",&orForm},
+        {"if",     &ifForm},
+        {"and",    &andForm},
+        {"or",     &orForm},
         {"lambda", &lambdaForm},
-        {"quote", &quoteForm},
+        {"quote",  &quoteForm},
 //    {"set!", &setForm},
 };
 
 ValuePtr defineForm(const std::vector<ValuePtr> &args, EvalEnv &env) {
-    if (args[0]->isSymbol()) {
+    if (args[0]->isSymbol()) {//普通形式的定义
         env.defineBinding(*args[0]->asSymbol(), env.eval(args[1]));
         return std::make_shared<NilValue>();
-    } else if(args[0]->isPair()&&args[1]->isPair()) {//lambda形式的定义
-        auto paramsVector = args[0]->toVector();
-        auto bodyVector = std::vector<ValuePtr>(args.begin()+1,args.end());
-        if(!paramsVector[0]->isSymbol()){
+    } else if (args[0]->isPair() && args[1]->isPair()) {//lambda形式的定义
+        auto paramsVector = args[0]->toVector();//获取lambda参数
+        auto bodyVector = std::vector<ValuePtr>(args.begin() + 1, args.end());//获取lambda体
+        if (!paramsVector[0]->isSymbol()) {
             throw LispError("lambda form's first argument must be a list of symbols.");
         }
-        auto name=*paramsVector[0]->asSymbol();//获取lambda名字
+        auto name = *paramsVector[0]->asSymbol();//获取lambda名字
         paramsVector.erase(paramsVector.begin());//删除lambda名字
         std::vector<std::string> paramNamesStr;
-        for(const auto& i:paramsVector){
-            if(auto paramName=i->asSymbol()){
+        for (const auto &i: paramsVector) {
+            if (auto paramName = i->asSymbol()) {
                 paramNamesStr.push_back(*paramName);
-            }else{
+            } else {
                 throw LispError("lambda form's first argument must be a list of symbols.");
             }
         }
-        env.defineBinding(name,std::make_shared<LambdaValue>(paramNamesStr,bodyVector,env.createChild()));
+        env.defineBinding(name, std::make_shared<LambdaValue>(paramNamesStr, bodyVector, env.createChild()));
         return std::make_shared<NilValue>();
-    }else {
-            throw LispError("unimplemented define form");
-        }
+    } else {
+        throw LispError("unimplemented define form");
+    }
 }
 
 
 ValuePtr quoteForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=1){//quote特殊形式只能有一个参数
+    if (params.size() != 1) {//quote特殊形式只能有一个参数
         throw LispError("quote form must have exactly one argument.");
     }
     return params[0]->toQuote();
@@ -54,9 +54,9 @@ ValuePtr quoteForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 ValuePtr ifForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
     if (params.size() != 3) {  // if特殊形式只能有三个参数
         throw LispError("if form must have exactly three arguments.");
-    }else if(*env.eval(params[0])->asBool() ){//如果第一个参数为真
+    } else if (*env.eval(params[0])->asBool()) {//如果第一个参数为真
         return env.eval(params[1]);//返回第二个参数
-    }else{
+    } else {
         return env.eval(params[2]);//返回第三个参数
     }
 }
@@ -68,9 +68,9 @@ ValuePtr andForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
     }
 
     ValuePtr andresult;
-    for(const auto& i:params){
-        andresult=env.eval(i);
-        if(!*andresult->asBool()){//如果有一个参数为假
+    for (const auto &i: params) {
+        andresult = env.eval(i);
+        if (!*andresult->asBool()) {//如果有一个参数为假
             return andresult;//返回假
         }
     }
@@ -78,30 +78,30 @@ ValuePtr andForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr orForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.empty()){
+    if (params.empty()) {
         return std::make_shared<BooleanValue>(false);
     }
-    for(const auto& i:params){
+    for (const auto &i: params) {
         auto orResult = env.eval(i);
-        if(*orResult->asBool()){//如果有一个参数为真
+        if (*orResult->asBool()) {//如果有一个参数为真
             return orResult;
         }
     }
-    return env.eval(params[params.size()-1]);
+    return env.eval(params[params.size() - 1]);
 }
 
-ValuePtr lambdaForm(const std::vector<ValuePtr>& params, EvalEnv& env){
-    if(params.size()!=2){
+ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if (params.size() != 2) {
         throw LispError("lambda form must have exactly two arguments.");
     }
-    auto paramNamesValuePtrVector=params[0]->toVector();
+    auto paramNamesValuePtrVector = params[0]->toVector();
     std::vector<std::string> paramNamesStrVector;
-    for(const auto& i:paramNamesValuePtrVector){
-        if(auto name=i->asSymbol()){
+    for (const auto &i: paramNamesValuePtrVector) {
+        if (auto name = i->asSymbol()) {
             paramNamesStrVector.push_back(*name);
-        }else{
+        } else {
             throw LispError("lambda form's first argument must be a list of symbols.");
         }
     }
-    return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector(),env.createChild());
+    return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector(), env.createChild());
 }

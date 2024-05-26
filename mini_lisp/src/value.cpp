@@ -9,6 +9,7 @@
 #include <vector>
 #include <optional>
 #include"eval_env.h"
+
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
 }
@@ -18,7 +19,7 @@ bool BooleanValue::getValue() const {
 }
 
 ValuePtr BooleanValue::toQuote() {
-    return shared_from_this();
+    return shared_from_this();//对于布尔值，quote返回自身
 }
 
 std::string NumericValue::toString() const {
@@ -37,8 +38,8 @@ std::string NilValue::internalToString() const {
     return "";//内部不返回空表两端的括号
 }
 
-std::shared_ptr<Value> NilValue::toQuote(){
-    return shared_from_this();
+std::shared_ptr<Value> NilValue::toQuote() {
+    return shared_from_this();//对于空表，quote返回空表
 }
 
 std::vector<std::shared_ptr<Value>> NilValue::toVector() {
@@ -68,12 +69,13 @@ bool Value::isString() const {
 bool Value::isPair() const {
     return typeid(*this) == typeid(PairValue);
 }
+
 bool Value::isBuiltin() const {
-    return typeid(*this)==typeid(BuiltinProcValue);
+    return typeid(*this) == typeid(BuiltinProcValue);
 }
 
-bool Value::isLambda() const{
-    return typeid(*this)==typeid(LambdaValue);
+bool Value::isLambda() const {
+    return typeid(*this) == typeid(LambdaValue);
 }
 
 std::string Value::internalToString() const {
@@ -81,7 +83,7 @@ std::string Value::internalToString() const {
 }
 
 bool Value::isSelfEvaluating() const {
-    return isNum() || isBool() || isString()||isBuiltin()||typeid(*this)==typeid(LambdaValue);
+    return isNum() || isBool() || isString() ;
 }
 
 std::vector<std::shared_ptr<Value>> Value::toVector() {
@@ -93,7 +95,7 @@ std::string PairValue::internalToString() const {
         return car->internalToString();
     } else if (!cdr->isPair() && cdr) {
         return car->internalToString() + " . " + cdr->internalToString();
-    } else if(cdr) {
+    } else if (cdr) {
         return car->internalToString() + " " + cdr->internalToString();
     }
     throw LispError("PairValue internalToString error");
@@ -125,17 +127,17 @@ ValuePtr PairValue::getCdr() const {
 }
 
 std::shared_ptr<Value> PairValue::toQuote() {
-    return std::make_shared<PairValue>(car->toQuote(), cdr->toQuote());
+    return std::make_shared<PairValue>(car->toQuote(), cdr->toQuote());//对于对子，quote递归调用toquote最后返回一个对子
 }
 
 PairValue::PairValue(const std::vector<ValuePtr> &values) {
-    ValuePtr result=std::make_shared<NilValue>();
-    for(const auto & value : std::ranges::reverse_view(values)){
-        result=std::make_shared<PairValue>(value,result);
+    ValuePtr result = std::make_shared<NilValue>();
+    for (const auto &value: std::ranges::reverse_view(values)) {
+        result = std::make_shared<PairValue>(value, result);
     }
-    auto pairResult=std::dynamic_pointer_cast<PairValue>(result);
-    this->car=pairResult->car;
-    this->cdr=pairResult->cdr;
+    auto pairResult = std::dynamic_pointer_cast<PairValue>(result);
+    this->car = pairResult->car;
+    this->cdr = pairResult->cdr;
 }
 
 std::string StringValue::toString() const {
@@ -149,7 +151,7 @@ std::string StringValue::internalToString() const {
 }
 
 ValuePtr StringValue::toQuote() {
-    return shared_from_this();
+    return shared_from_this();//对于字符串，quote返回自身
 }
 
 
@@ -158,7 +160,7 @@ std::string SymbolValue::toString() const {
 }
 
 std::shared_ptr<Value> Value::toQuote() {
-    return std::make_shared<SymbolValue>(internalToString());
+    return std::make_shared<SymbolValue>(internalToString());//对于其他类型，quote返回自身的字符串表示
 }
 
 std::optional<std::string> Value::asSymbol() const {
@@ -176,18 +178,18 @@ std::optional<double> Value::asNumber() const {
 }
 
 std::optional<bool> Value::asBool() {
-    if(isBool()){
+    if (isBool()) {
         return std::dynamic_pointer_cast<BooleanValue>(shared_from_this())->getValue();
     }
     return true;
 }
 
 std::shared_ptr<Value> BuiltinProcValue::toQuote() {
-    return std::make_shared<SymbolValue>(name);
+    return std::make_shared<SymbolValue>(name);//对于内置过程，quote返回过程的名字
 }
 
 std::string BuiltinProcValue::toString() const {
-    return "#<procedure:"+name+">";//改进：返回过程的名字
+    return "#<procedure:" + name + ">";//改进：返回过程的名字
 }
 
 double NumericValue::getValue() const {
@@ -202,17 +204,20 @@ std::string LambdaValue::toString() const {
     return "#<procedure>";
 }
 
-LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body): params(std::move(params)), body(std::move(body)) {}
+LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body) : params(std::move(params)),
+                                                                                        body(std::move(body)) {}
 
-LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env): params(std::move(params)), body(std::move(body)) {
+LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env)
+        : params(std::move(params)), body(std::move(body)) {
     this->lambdaEnv = std::move(env);
 }
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     if (args.size() < params.size()) {//创建子表达式
-        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body, lambdaEnv->createChild());
-        for(auto i=0;i<args.size();i++){//将参数绑定到子表达式的环境中
-            childLambda->lambdaEnv->defineBinding(params[i],args[i]);
+        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body,
+                                                                                 lambdaEnv->createChild());
+        for (auto i = 0; i < args.size(); i++) {//将参数绑定到子表达式的环境中
+            childLambda->lambdaEnv->defineBinding(params[i], args[i]);
             childLambda->params.erase(childLambda->params.begin());//删除已经绑定的参数
         }
         return childLambda;
@@ -220,18 +225,19 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     ValuePtr result;
     for (size_t i = 0; i < params.size(); i++) {
         lambdaEnv->defineBinding(params[i], args[i]);
-    }if(body.size()==1){
-        result=lambdaEnv->eval(body);
-    }else {
-        auto resultVector=std::vector<ValuePtr>();
-        for(auto i=0;i<body.size();i++){
+    }
+    if (body.size() == 1) {
+        result = lambdaEnv->eval(body);
+    } else {
+        auto resultVector = std::vector<ValuePtr>();
+        for (auto i = 0; i < body.size(); i++) {
             resultVector.push_back(lambdaEnv->eval(body[i]));
         }
-        result=lambdaEnv->eval(resultVector);
+        result = lambdaEnv->eval(resultVector);
     }
     return result;
 }
 
 ValuePtr SymbolValue::toQuote() {
-    return shared_from_this();
+    return shared_from_this();//对于符号，quote返回自身
 }
