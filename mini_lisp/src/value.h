@@ -102,7 +102,7 @@ class PairValue : public Value {
 public:
     explicit PairValue(const ValuePtr &car, const ValuePtr &cdr) : car(car->shared_from_this()),cdr(cdr->shared_from_this()) {}
 
-    PairValue(const std::vector<ValuePtr> &values);
+    explicit PairValue(const std::vector<ValuePtr> &values);
 
     std::string internalToString() const override;
 
@@ -111,6 +111,8 @@ public:
     ValuePtr getCar() const;
 
     ValuePtr getCdr() const;
+
+    void append(const ValuePtr &valueptr);
 
     std::vector<ValuePtr> toVector() override;
 

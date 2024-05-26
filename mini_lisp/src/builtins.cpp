@@ -30,9 +30,11 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"number?",std::make_shared<BuiltinProcValue>("number?", numberCheck)},
         {"null?",std::make_shared<BuiltinProcValue>("null?", nullCheck)},
         {"list?",std::make_shared<BuiltinProcValue>("list?", listCheck)},
-        {"pair?",std::make_shared<BuiltinProcValue>("pair?", pairCheck)}
-
-
+        {"pair?",std::make_shared<BuiltinProcValue>("pair?", pairCheck)},
+        {"procedure?",std::make_shared<BuiltinProcValue>("procedure?", procedureCheck)},
+        {"string?",std::make_shared<BuiltinProcValue>("string?", stringCheck)},
+        {"symbol?",std::make_shared<BuiltinProcValue>("symbol?", symbolCheck)},
+        {"append",std::make_shared<BuiltinProcValue>("append", append)}
 };  // 内建函数的map
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
@@ -237,4 +239,39 @@ ValuePtr pairCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv 
         throw LispError("pair?: arguments muse be 1");
     }
     return std::make_shared<BooleanValue>(params[0]->isPair());
+}
+
+ValuePtr procedureCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env){
+    if(params.size()!=1){
+        throw LispError("builtin?: arguments muse be 1");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isBuiltin() || params[0]->isLambda());
+}
+
+ValuePtr stringCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env){
+    if(params.size()!=1){
+        throw LispError("builtin?: arguments muse be 1");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isString());
+}
+
+ValuePtr symbolCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env){
+    if(params.size()!=1){
+        throw LispError("builtin?: arguments muse be 1");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isSymbol());
+}
+
+ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
+    if (params.empty()) {//如果参数为空,返回空表
+        return std::make_shared<NilValue>();
+    }
+    if(!params[0]->isList()){//如果第一个参数不是list,抛出异常
+        throw LispError("append: arguments must be lists.");
+    }
+    auto result = std::static_pointer_cast<PairValue>(params[0]);
+    for(int i = 1; i < params.size(); i++){
+        result->append(params[i]);//将params[i]加入到result的最后
+    }
+    return result;
 }
