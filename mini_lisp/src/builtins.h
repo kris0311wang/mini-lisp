@@ -53,4 +53,9 @@ ValuePtr intergerCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] Eva
 
 ValuePtr listCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
+ValuePtr numberCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env);
+
+ValuePtr nullCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env);
+
+ValuePtr pairCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env);
 #endif  // MINI_LISP_BUILTINS_H

@@ -188,7 +188,7 @@ std::optional<bool> Value::asBool() {
     return true;
 }
 
-bool Value::isList() const {
+bool Value::isList() const {//如果最后的cdr是NilValue就是list
     if(isNil()){
         return true;
     }

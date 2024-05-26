@@ -26,7 +26,13 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"newline",   std::make_shared<BuiltinProcValue>("newline", newline)},
         {"atom?", std::make_shared<BuiltinProcValue>("atom?", atomCheck)},
         {"boolean?", std::make_shared<BuiltinProcValue>("boolean?", booleanCheck)},
-        {"integer?", std::make_shared<BuiltinProcValue>("integer?", intergerCheck)}
+        {"integer?", std::make_shared<BuiltinProcValue>("integer?", intergerCheck)},
+        {"number?",std::make_shared<BuiltinProcValue>("number?", numberCheck)},
+        {"null?",std::make_shared<BuiltinProcValue>("null?", nullCheck)},
+        {"list?",std::make_shared<BuiltinProcValue>("list?", listCheck)},
+        {"pair?",std::make_shared<BuiltinProcValue>("pair?", pairCheck)}
+
+
 };  // 内建函数的map
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
@@ -209,7 +215,7 @@ ValuePtr listCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv 
     if(params.size() != 1){
         throw LispError("list?: arguments must be 1.");
     }
-    return std::make_shared<BooleanValue>(params[0]->isPair());
+    return std::make_shared<BooleanValue>(params[0]->isList());
 }
 
 ValuePtr numberCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env){
@@ -226,3 +232,9 @@ ValuePtr nullCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv 
     return std::make_shared<BooleanValue>(params[0]->isNil());
 }
 
+ValuePtr pairCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env){
+    if(params.size()!=1){
+        throw LispError("pair?: arguments muse be 1");
+    }
+    return std::make_shared<BooleanValue>(params[0]->isPair());
+}

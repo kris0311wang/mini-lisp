@@ -75,7 +75,7 @@ class NumericValue : public Value {
 public:
     explicit NumericValue(const double &value) : value(value) {}
 
-    bool isInt() const;
+    bool isInt() const override;
 
     std::string toString() const override;
 
