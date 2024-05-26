@@ -21,10 +21,12 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"displayln", std::make_shared<BuiltinProcValue>("displayln", displayln)},
         {"error",     std::make_shared<BuiltinProcValue>("error", error)},
         {"eval",      std::make_shared<BuiltinProcValue>("eval", eval)},
-        {"cons",      std::make_shared<BuiltinProcValue>("cons", cons)}
+        {"cons",      std::make_shared<BuiltinProcValue>("cons", cons)},
+        {"exit",      std::make_shared<BuiltinProcValue>("exit", builtinExit)},
+        {"newline",   std::make_shared<BuiltinProcValue>("newline", newline)},
 };  // 内建函数的map
-ValuePtr
-add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
+
+ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
     double result = 0;
     for (const auto &i: params) {
         if (i->isNum()) {
@@ -36,8 +38,7 @@ add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add�
     return std::make_shared<NumericValue>(result);
 }
 
-ValuePtr
-print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//print函数的实现:输入是一个ValuePtr的vector，输出空表
+ValuePtr print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//print函数的实现:输入是一个ValuePtr的vector，输出空表
     for (const auto &i: params) {
         std::cout << i->toString() << " ";
     }
@@ -141,6 +142,11 @@ ValuePtr displayln(const std::vector<ValuePtr> &params, EvalEnv &env) {//display
 }
 
 ValuePtr error(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
+    if(params.size() ==0){
+        throw LispError("default error message");
+    }else if(params.size() != 1){
+        throw LispError("error: arguments more than 1.");
+    }
     throw LispError(params[0]->toString());
 }
 
@@ -154,3 +160,24 @@ ValuePtr cons(const std::vector<ValuePtr> &params, EvalEnv &env) {
     }
     return std::make_shared<PairValue>(params[0], params[1]);
 }
+
+ValuePtr builtinExit(const std::vector<ValuePtr> &params,EvalEnv& env){
+    if(params.size() == 0){
+        exit(0);
+    }
+    if(params.size() == 1){
+        if(params[0]->isNum()){
+            exit(*params[0]->asNumber());
+        }
+    }
+    throw LispError("exit: arguments must be a number.");
+}
+
+ValuePtr newline(const std::vector<ValuePtr> &params,EvalEnv& env){
+    if(params.size() != 0){
+        throw LispError("newline: arguments must be 0.");
+    }
+    std::cout << std::endl;
+    return std::make_shared<NilValue>();
+}
+

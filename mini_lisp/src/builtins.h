@@ -41,4 +41,7 @@ ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env);
 
 ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
+ValuePtr builtinExit(const std::vector<ValuePtr> &params,EvalEnv& env);
+
+ValuePtr newline(const std::vector<ValuePtr> &params,EvalEnv& env);
 #endif  // MINI_LISP_BUILTINS_H
