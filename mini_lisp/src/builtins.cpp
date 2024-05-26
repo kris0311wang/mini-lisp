@@ -34,7 +34,8 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"procedure?",std::make_shared<BuiltinProcValue>("procedure?", procedureCheck)},
         {"string?",std::make_shared<BuiltinProcValue>("string?", stringCheck)},
         {"symbol?",std::make_shared<BuiltinProcValue>("symbol?", symbolCheck)},
-        {"append",std::make_shared<BuiltinProcValue>("append", append)}
+        {"append",std::make_shared<BuiltinProcValue>("append", append)},
+        {"list",std::make_shared<BuiltinProcValue>("list", list)},
 };  // 内建函数的map
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
@@ -274,5 +275,9 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
         result->append(params[i]);//将params[i]加入到result的最后
     }
     return result;
+}
+
+ValuePtr list(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    return std::make_shared<PairValue>(params);
 }
 
