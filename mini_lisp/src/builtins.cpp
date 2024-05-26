@@ -89,8 +89,8 @@ ValuePtr lessThan(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv 
 }
 
 ValuePtr length(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("length: arguments must be 1 list.");
+    if(params.size() != 1||!params[0]->isList()){
+        throw LispError("length: arguments must be a list.");
     }
     return std::make_shared<NumericValue>(params[0]->toVector().size());
 }
@@ -275,3 +275,4 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
     }
     return result;
 }
+
