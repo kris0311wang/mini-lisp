@@ -22,6 +22,20 @@ ValuePtr BooleanValue::toQuote() {
     return shared_from_this();//对于布尔值，quote返回自身
 }
 
+bool BooleanValue::operator==(const Value &rhs) const {
+    if(!rhs.isBool()){
+        return false;
+    }
+    return value==std::dynamic_pointer_cast<const BooleanValue>(rhs.shared_from_this())->getValue();
+}
+
+bool NumericValue::operator==(const Value &rhs) const {
+    if(!rhs.isNum()){
+        return false;
+    }
+    return value==std::dynamic_pointer_cast<const NumericValue>(rhs.shared_from_this())->getValue();
+}
+
 std::string NumericValue::toString() const {
     return isInt() ? std::to_string(static_cast<int>(value)) : std::to_string(value);
 }
@@ -44,6 +58,40 @@ std::shared_ptr<Value> NilValue::toQuote() {
 
 std::vector<std::shared_ptr<Value>> NilValue::toVector() {
     return {};
+}
+
+bool NilValue::operator==(const Value &rhs) const {
+    return rhs.isNil();
+}
+
+bool SymbolValue::operator== (const Value &rhs) const {
+    if(!rhs.isSymbol()){
+        return false;
+    }
+    return value==std::dynamic_pointer_cast<const SymbolValue>(rhs.shared_from_this())->value;
+}
+
+bool StringValue::operator==(const Value &rhs) const {
+    if(!rhs.isString()){
+        return false;
+    }
+    return value==std::dynamic_pointer_cast<const StringValue>(rhs.shared_from_this())->value;
+}
+
+bool BuiltinProcValue::operator==(const Value &rhs) const {
+throw LispError("BuiltinProcValue operator== undefined!");
+}
+
+bool LambdaValue::operator==(const Value &rhs) const {
+    throw LispError("LambdaValue operator== undefined!");
+}
+
+bool PairValue::operator==(const Value &rhs) const {
+    if(!rhs.isPair()){
+        return false;
+    }
+    auto pair=std::dynamic_pointer_cast<const PairValue>(rhs.shared_from_this());
+    return car==pair->car&&cdr==pair->cdr;
 }
 
 bool Value::isNil() const {

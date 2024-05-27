@@ -43,7 +43,8 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"expt",       std::make_shared<BuiltinProcValue>("expt", expt)},
         {"quotient",   std::make_shared<BuiltinProcValue>("quotient", quotient)},
         {"remainder", std::make_shared<BuiltinProcValue>("remainder", ValueRemainder)},
-        {"modulo",     std::make_shared<BuiltinProcValue>("modulo", modulo)}
+        {"modulo",     std::make_shared<BuiltinProcValue>("modulo", modulo)},
+        {"equal?",          std::make_shared<BuiltinProcValue>("equal?", equal)}
 };  // 内建函数的map
 
 ValuePtr
@@ -407,6 +408,16 @@ ValuePtr modulo(const std::vector<ValuePtr> &params, EvalEnv &env) {
     auto x=int(*params[0]->asNumber());
     auto y=int(*params[1]->asNumber());
     return std::make_shared<NumericValue>((x%y+y)%y);
+}
+
+ValuePtr equal(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if (params.size() != 2) {
+        throw LispError("equal: arguments must be 2.");
+    }
+    if(typeid(params[0])!=typeid(params[1])){
+        return std::make_shared<BooleanValue>(false);
+    }
+    return std::make_shared<BooleanValue>(*params[0]==*params[1]);
 }
 
 

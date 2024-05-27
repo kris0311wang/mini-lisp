@@ -16,6 +16,7 @@ class EvalEnv;
 
 class Value : public std::enable_shared_from_this<Value> {
 public:
+    virtual bool operator==(const Value &rhs) const = 0;
 
     virtual std::string internalToString() const;
 
@@ -61,6 +62,8 @@ using ValuePtr = std::shared_ptr<Value>;
 class BooleanValue : public Value {
     bool value;
 public:
+    bool operator== (const Value &rhs) const override;
+
     bool getValue() const;
 
     explicit BooleanValue(const bool &value) : value(value) {}
@@ -73,6 +76,8 @@ public:
 class NumericValue : public Value {
     double value;
 public:
+    bool operator== (const Value &rhs) const override;
+
     explicit NumericValue(const double &value) : value(value) {}
 
     bool isInt() const override;
@@ -87,6 +92,8 @@ public:
 
 class NilValue : public Value {
 public:
+    bool operator== (const Value &rhs) const override;
+
     std::string internalToString() const override;
 
     std::string toString() const override;
@@ -100,6 +107,8 @@ class PairValue : public Value {
     ValuePtr car;
     ValuePtr cdr;
 public:
+    bool operator== (const Value &rhs) const override;
+
     explicit PairValue(const ValuePtr &car, const ValuePtr &cdr) : car(car->shared_from_this()),cdr(cdr->shared_from_this()) {}
 
     explicit PairValue(const std::vector<ValuePtr> &values);
@@ -122,6 +131,8 @@ public:
 class SymbolValue : public Value {
     std::string value;
 public:
+    bool operator== (const Value &rhs) const override;
+
     explicit SymbolValue(std::string value) : value(std::move(value)) {}
 
     std::string toString() const override;
@@ -132,6 +143,8 @@ public:
 class StringValue : public Value {
     std::string value;
 public:
+    bool operator== (const Value &rhs) const override;
+
     explicit StringValue(std::string value) : value(std::move(value)) {}
 
     std::string toString() const override;
@@ -144,6 +157,7 @@ public:
 using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr> &, EvalEnv &env);//内建函数的函数指针类型
 class BuiltinProcValue : public Value {
 public:
+    bool operator== (const Value &rhs) const override;
     std::string name;
     BuiltinFuncType *func;//函数指针
     BuiltinProcValue(std::string name, BuiltinFuncType func) : name(std::move(name)), func(func) {}//构造函数
@@ -159,6 +173,7 @@ private:
     std::shared_ptr<EvalEnv> lambdaEnv;
     // [...]
 public:
+    bool operator== (const Value &rhs) const override;
     LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body);
 
     LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env);

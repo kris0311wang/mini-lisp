@@ -83,4 +83,6 @@ ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, [[maybe_unused]] Ev
 
 ValuePtr modulo(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
+ValuePtr equal(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
 #endif  // MINI_LISP_BUILTINS_H
