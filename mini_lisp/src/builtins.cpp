@@ -44,11 +44,18 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"quotient",   std::make_shared<BuiltinProcValue>("quotient", quotient)},
         {"remainder", std::make_shared<BuiltinProcValue>("remainder", ValueRemainder)},
         {"modulo",     std::make_shared<BuiltinProcValue>("modulo", modulo)},
-        {"equal?",          std::make_shared<BuiltinProcValue>("equal?", equal)}
+        {"equal?", std::make_shared<BuiltinProcValue>("equal?", equalCheck)},
+        {"eq?",   std::make_shared<BuiltinProcValue>("eq?", eqCheck)},
+        {"not",   std::make_shared<BuiltinProcValue>("not", notCheck)},
+        {"=",     std::make_shared<BuiltinProcValue>("=", equalSignCheck)},
+        {">=",    std::make_shared<BuiltinProcValue>(">=", greaterThanOrEqual)},
+        {"<=",    std::make_shared<BuiltinProcValue>("<=", lessThanOrEqual)},
+        {"even?", std::make_shared<BuiltinProcValue>("even?", evenCheck)},
+        {"odd?",  std::make_shared<BuiltinProcValue>("odd?", oddCheck)},
+        {"zero?",std::make_shared<BuiltinProcValue>{"zero?",zeroCheck}}
 };  // 内建函数的map
 
-ValuePtr
-add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
+ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
     double result = 0;
     for (const auto &i: params) {
         if (i->isNum()) {
@@ -60,8 +67,7 @@ add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add�
     return std::make_shared<NumericValue>(result);
 }
 
-ValuePtr
-print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//print函数的实现:输入是一个ValuePtr的vector，输出空表
+ValuePtr print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//print函数的实现:输入是一个ValuePtr的vector，输出空表
     for (const auto &i: params) {
         std::cout << i->toString() << " ";
     }
@@ -410,15 +416,94 @@ ValuePtr modulo(const std::vector<ValuePtr> &params, EvalEnv &env) {
     return std::make_shared<NumericValue>((x%y+y)%y);
 }
 
-ValuePtr equal(const std::vector<ValuePtr> &params, EvalEnv &env) {
+ValuePtr equalCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
     if (params.size() != 2) {
-        throw LispError("equal: arguments must be 2.");
-    }
-    if(typeid(params[0])!=typeid(params[1])){
-        return std::make_shared<BooleanValue>(false);
+        throw LispError("equalCheck: arguments must be 2.");
     }
     return std::make_shared<BooleanValue>(*params[0]==*params[1]);
 }
 
+ValuePtr eqCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if (params.size() != 2) {
+        throw LispError("eqCheck: arguments must be 2.");
+    }
+    if(params[0]->isPair()&&params[1]->isPair() ||params[0]->isString()&&params[1]->isString()){
+        return std::make_shared<BooleanValue>(params[0]==params[1]);
+    }
+    return std::make_shared<BooleanValue>(*params[0]==*params[1]);
+}
+
+ValuePtr notCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size() != 1) {
+        throw LispError("notCheck: arguments must be 1.");
+    }
+    return std::make_shared<BooleanValue>(!*params[0]->asBool());
+}
+
+ValuePtr equalSignCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if (params.size() != 2) {
+        throw LispError("equalSignCheck: arguments must be 2.");
+    }
+    if(!(params[0]->isNum()&&params[1]->isNum())){
+        throw LispError("equalSignCheck: arguments must be numbers.");
+    }
+    auto x=*params[0]->asNumber();
+    auto y=*params[1]->asNumber();
+    return std::make_shared<BooleanValue>(x==y);
+}
+
+ValuePtr greaterThanOrEqual(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=2){
+        throw LispError("greaterThanOrEqual: arguments must be 2 numbers.");
+    }
+    if(!(params[0]->isNum()&&params[1]->isNum())){
+        throw LispError("greaterThanOrEqual: arguments must be numbers.");
+    }
+    auto x=*params[0]->asNumber();
+    auto y=*params[1]->asNumber();
+    return std::make_shared<BooleanValue>(x>=y);
+}
+
+ValuePtr lessThanOrEqual(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=2){
+        throw LispError("lessThanOrEqual: arguments must be 2 numbers.");
+    }
+    if(!(params[0]->isNum()&&params[1]->isNum())){
+        throw LispError("lessThanOrEqual: arguments must be numbers.");
+    }
+    auto x=*params[0]->asNumber();
+    auto y=*params[1]->asNumber();
+    return std::make_shared<BooleanValue>(x<=y);
+}
+
+ValuePtr evenCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=1){
+        throw LispError("evenCheck: arguments must be 1 number.");
+    }
+    if(!params[0]->isInt()){
+        throw LispError("evenCheck: arguments must be an integer.");
+    }
+    return std::make_shared<BooleanValue>(int(*params[0]->asNumber())%2==0);
+}
+
+ValuePtr oddCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=1){
+        throw LispError("oddCheck: arguments must be 1 number.");
+    }
+    if(!params[0]->isInt()){
+        throw LispError("oddCheck: arguments must be an integer.");
+    }
+    return std::make_shared<BooleanValue>(int(*params[0]->asNumber())%2!=0);
+}
+
+ValuePtr zeroCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=1){
+        throw LispError("zeroCheck: arguments must be 1 number.");
+    }
+    if(!params[0]->isNum()){
+        throw LispError("zeroCheck: arguments must be a number.");
+    }
+    return std::make_shared<BooleanValue>(*params[0]->asNumber()==0);
+}
 
 #pragma clang diagnostic pop

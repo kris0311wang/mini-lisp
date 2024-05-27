@@ -83,6 +83,21 @@ ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, [[maybe_unused]] Ev
 
 ValuePtr modulo(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
-ValuePtr equal(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+ValuePtr equalCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
+ValuePtr eqCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr notCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr equalSignCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr greaterThanOrEqual(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr lessThanOrEqual(const std::vector<ValuePtr> &params, EvalEnv &env);
+
+ValuePtr evenCheck(const std::vector<ValuePtr> &params, EvalEnv &env);
+
+ValuePtr oddCheck(const std::vector<ValuePtr> &params, EvalEnv &env);
+
+ValuePtr zeroCheck(const std::vector<ValuePtr> &params, EvalEnv &env);
 #endif  // MINI_LISP_BUILTINS_H

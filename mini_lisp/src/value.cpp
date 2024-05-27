@@ -91,7 +91,7 @@ bool PairValue::operator==(const Value &rhs) const {
         return false;
     }
     auto pair=std::dynamic_pointer_cast<const PairValue>(rhs.shared_from_this());
-    return car==pair->car&&cdr==pair->cdr;
+    return *car==*pair->car&&*cdr==*pair->cdr;
 }
 
 bool Value::isNil() const {
