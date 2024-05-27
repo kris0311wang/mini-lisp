@@ -77,4 +77,10 @@ ValuePtr divide(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
 
 ValuePtr expt(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
+ValuePtr quotient(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr modulo(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
 #endif  // MINI_LISP_BUILTINS_H

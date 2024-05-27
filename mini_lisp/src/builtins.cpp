@@ -41,7 +41,9 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"reduce",     std::make_shared<BuiltinProcValue>("reduce", reduce)},
         {"/",          std::make_shared<BuiltinProcValue>("/", divide)},
         {"expt",       std::make_shared<BuiltinProcValue>("expt", expt)},
-        {"quotient",   std::make_shared<BuiltinProcValue>("quotient", quotient)}
+        {"quotient",   std::make_shared<BuiltinProcValue>("quotient", quotient)},
+        {"remainder", std::make_shared<BuiltinProcValue>("remainder", ValueRemainder)},
+        {"modulo",     std::make_shared<BuiltinProcValue>("modulo", modulo)}
 };  // 内建函数的map
 
 ValuePtr
@@ -371,6 +373,40 @@ ValuePtr quotient(const std::vector<ValuePtr> &params, EvalEnv &env){
         throw LispError("quotient: divisor can't be zero.");
     }
     return std::make_shared<NumericValue>(int(*params[0]->asNumber()/ *params[1]->asNumber()));
+}
+
+ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, EvalEnv &env){
+    if(params.size()!=2){
+        throw LispError("remainder: arguments must be 2 numbers.");
+    }
+    if(!(params[0]->isNum()&&params[1]->isNum())){
+        throw LispError("remainder: arguments must be numbers.");
+    }
+    if(*params[1]->asNumber()==0){
+        throw LispError("remainder: divisor can't be zero.");
+    }
+    if(!(params[0]->isInt() && params[1]->isInt())){
+        throw LispError("remainder: arguments must be integers.");
+    }
+    return std::make_shared<NumericValue>(int(*params[0]->asNumber())%int(*params[1]->asNumber()));
+}
+
+ValuePtr modulo(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if (params.size() != 2) {
+        throw LispError("modulo: arguments must be 2 numbers.");
+    }
+    if (!(params[0]->isNum() && params[1]->isNum())) {
+        throw LispError("modulo: arguments must be numbers.");
+    }
+    if (*params[1]->asNumber() == 0) {
+        throw LispError("modulo: divisor can't be zero.");
+    }
+    if (!(params[0]->isInt() && params[1]->isInt())) {
+        throw LispError("modulo: arguments must be integers.");
+    }
+    auto x=int(*params[0]->asNumber());
+    auto y=int(*params[1]->asNumber());
+    return std::make_shared<NumericValue>((x%y+y)%y);
 }
 
 
