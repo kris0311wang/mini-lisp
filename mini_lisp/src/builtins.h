@@ -67,10 +67,14 @@ ValuePtr symbolCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalE
 
 ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
-ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] [[maybe_unused]] EvalEnv &env);
 
 ValuePtr map(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
 ValuePtr reduce(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr divide(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr expt(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
 #endif  // MINI_LISP_BUILTINS_H
