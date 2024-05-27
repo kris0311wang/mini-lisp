@@ -7,7 +7,6 @@
 #include"builtins.h"
 #include"error.h"
 #include"eval_env.h"
-
 std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs{
         {"+",          std::make_shared<BuiltinProcValue>("+", add)},
         {"print",      std::make_shared<BuiltinProcValue>("print", print)},
@@ -41,7 +40,8 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"map",        std::make_shared<BuiltinProcValue>("map", map)},
         {"reduce",     std::make_shared<BuiltinProcValue>("reduce", reduce)},
         {"/",          std::make_shared<BuiltinProcValue>("/", divide)},
-        {"expt",       std::make_shared<BuiltinProcValue>("expt", expt)}
+        {"expt",       std::make_shared<BuiltinProcValue>("expt", expt)},
+        {"quotient",   std::make_shared<BuiltinProcValue>("quotient", quotient)}
 };  // 内建函数的map
 
 ValuePtr
@@ -358,6 +358,19 @@ ValuePtr expt(const std::vector<ValuePtr> &params, EvalEnv &env){
         throw LispError("expt: 0^0 is undefined.");
     }
     return std::make_shared<NumericValue>(std::pow(x,y));
+}
+
+ValuePtr quotient(const std::vector<ValuePtr> &params, EvalEnv &env){
+    if(params.size()!=2){
+        throw LispError("quotient: arguments must be 2 numbers.");
+    }
+    if(!(params[0]->isNum()&&params[1]->isNum())){
+        throw LispError("quotient: arguments must be numbers.");
+    }
+    if(*params[1]->asNumber()==0){
+        throw LispError("quotient: divisor can't be zero.");
+    }
+    return std::make_shared<NumericValue>(int(*params[0]->asNumber()/ *params[1]->asNumber()));
 }
 
 
