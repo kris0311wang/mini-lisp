@@ -13,6 +13,9 @@ const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS{
         {"or",     &orForm},
         {"lambda", &lambdaForm},
         {"quote",  &quoteForm},
+        {"cond",&condForm},
+        {"begin",&beginForm},
+        {"let",&letForm},
 //    {"set!", &setForm},
 };
 
@@ -91,7 +94,7 @@ ValuePtr orForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
+    if (params.size() != 2) {//lambda特殊形式只能有两个参数
         throw LispError("lambda form must have exactly two arguments.");
     }
     auto paramNamesValuePtrVector = params[0]->toVector();
@@ -104,4 +107,74 @@ ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
         }
     }
     return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector(), env.createChild());
+}
+
+ValuePtr condForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if (params.empty()) {
+        throw LispError("cond form must have at least one argument.");
+    }
+    for (const auto &i: params) {
+        if(!i->isPair()){
+            throw LispError("cond form's arguments must be pairs.");
+        }
+        auto pairExpression=std::static_pointer_cast<PairValue>(i);
+        auto condition=pairExpression->getCar();
+        auto condResult=env.eval(condition);//计算条件
+        if(*condition->asSymbol()=="else"||*condResult->asBool()){
+            auto expressions = pairExpression->getCdr()->toVector();
+            ValuePtr result;
+            if(expressions.empty()){//如果没有表达式,返回计算条件的结果
+                return condResult;
+            }
+            for (const auto & expression : expressions) {
+                result = env.eval(expression);//计算每个表达式
+            }
+            return result;//返回最后一个表达式的结果
+        }
+    }
+    return std::make_shared<NilValue>();//如果没有条件为真,返回空表
+}
+
+ValuePtr beginForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.empty()) {
+        throw LispError("begin form must have at least one argument.");
+    }
+    //其余移植lambda的body计算过程
+    if(params.size() == 1) {
+        return env.eval(params[0]);
+    }
+    ValuePtr result;
+    std::vector<ValuePtr> resultVector;
+    for (const auto &i: params) {
+        result = env.eval(i);
+        resultVector.push_back(result);
+    }
+    result=env.eval(resultVector);
+    return result;
+}
+
+ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()<2){
+        throw LispError("let form must have at least two arguments.");
+    }
+    auto bindings=params[0]->toVector();//获取绑定
+    auto expressions=std::vector<ValuePtr>(params.begin()+1,params.end());//获取表达式
+    auto newEnv=env.createChild();//创建新环境
+    std::vector<std::string> paramNamesStrVector;
+    std::vector<ValuePtr> paramValuesVector;
+    for(const auto &i:bindings){//对每个绑定进行处理
+        if(!i->isPair()){
+            throw LispError("let form's first argument must be a list of pairs.");
+        }
+        auto pairExpression=std::static_pointer_cast<PairValue>(i);
+        if(!pairExpression->getCar()->isSymbol()){
+            throw LispError("let form's first argument must be a list of pairs.");
+        }
+        auto name=pairExpression->getCar()->asSymbol();
+        auto value=pairExpression->getCdr();
+        paramNamesStrVector.push_back(*name);
+        paramValuesVector.push_back(value);
+    }
+    LambdaValue letLambda=LambdaValue(paramNamesStrVector,expressions,newEnv);
+    return letLambda.apply(paramValuesVector);
 }

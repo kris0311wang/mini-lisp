@@ -56,84 +56,95 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"filter",std::make_shared<BuiltinProcValue>("filter",filter)}
 };  // 内建函数的map
 
+void checkExactSize(const std::vector<ValuePtr> &params, int size, const std::string &name) {//检查参数个数是否等于size
+    if (params.size() != size) {
+        throw LispError(name + ": arguments must be " + std::to_string(size) + ", but got " + std::to_string(params.size()) + ".");
+    }
+}
+
+void throwTypeError(const std::string &name,const std::string& type) {//抛出类型错误
+    throw LispError(name + ": arguments must be " + type + ".");
+}
+
+void checkMinSize(const std::vector<ValuePtr> &params, int size, const std::string &name) {//检查参数个数是否大于等于size
+    if (params.size() < size) {
+        throw LispError(name + ": arguments must be at least " + std::to_string(size) + "，but got " + std::to_string(params.size()) + ".");
+    }
+}
+
+void checkMaxSize(const std::vector<ValuePtr> &params, int size, const std::string &name) {//检查参数个数是否小于等于size
+    if (params.size() > size) {
+        throw LispError(name + ": arguments must be at most " + std::to_string(size) + "，but got " + std::to_string(params.size()) + ".");
+    }
+}
+
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
     double result = 0;
     for (const auto &i: params) {
-        if (i->isNum()) {
-            result += *i->asNumber();
+        if (auto num = i->asNumber()){
+            result += *num;
         } else {
-            throw LispError("add: arguments must be numbers.");
+            throwTypeError("add","numbers");
         }
     }
     return std::make_shared<NumericValue>(result);
 }
 
 ValuePtr print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//print函数的实现:输入是一个ValuePtr的vector，输出空表
-    for (const auto &i: params) {
-        std::cout << i->toString() << " ";
-    }
-    std::cout << std::endl;
+    checkExactSize(params, 1, "print");
+    std::cout << params[0]->toString()<<std::endl;
     return std::make_shared<NilValue>();
 }
 
 
 ValuePtr sub(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 2 && params.size() != 1) {
-        throw LispError("sub: arguments must be 2 numbers.");
-    }
+    checkMaxSize(params, 2, "sub");
     if (params.size() == 1) {
         if (!params[0]->isNum()) {
-            throw LispError("sub: arguments must be numbers.");
+            throwTypeError("sub","numbers");
         }
         return std::make_shared<NumericValue>(-*params[0]->asNumber());
-
     }
     return std::make_shared<NumericValue>(*params[0]->asNumber() - *params[1]->asNumber());
 }
 
 ValuePtr greaterThan(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("greaterThan: arguments must be 2 numbers.");
+    checkExactSize(params, 2, ">");//检查参数个数是否等于2
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if(x && y){
+        return std::make_shared<BooleanValue>(*params[0]->asNumber() > *params[1]->asNumber());
     }
-    if (!(params[0]->isNum() && params[1]->isNum())) {
-        throw LispError("greaterThan: arguments must be numbers.");
-    }
-    return std::make_shared<BooleanValue>(*params[0]->asNumber() > *params[1]->asNumber());
+    throwTypeError(">","numbers");
 }
 
 ValuePtr lessThan(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("lessThan: arguments must be 2 numbers.");
-    }
-    if (!(params[0]->isNum() && params[1]->isNum())) {
-        throw LispError("lessThan: arguments must be numbers.");
-    }
-    return std::make_shared<BooleanValue>(*params[0]->asNumber() < *params[1]->asNumber());
+    checkExactSize(params, 2, "<");
+    return greaterThan({params[1], params[0]}, env);
 }
 
 ValuePtr length(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1 || !params[0]->isList()) {
-        throw LispError("length: arguments must be a list.");
+    checkExactSize(params, 1, "length");
+    if (!params[0]->isList()) {
+        throwTypeError("length","lists");
     }
     return std::make_shared<NumericValue>(params[0]->toVector().size());
 }
 
 ValuePtr car(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     if (params.size() != 1) {
-        throw LispError("car: arguments must be 1 list.");
+        throwTypeError("car","lists");
     }
     if (!params[0]->isPair()) {
-        throw LispError("car: arguments must be a list.");
+        throwTypeError("car","lists");
     }
     return std::static_pointer_cast<PairValue>(params[0])->getCar();
 }
 
 ValuePtr cdr(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("cdr: arguments must be 1 list.");
-    }
+    checkExactSize(params, 1, "cdr");
     if (!params[0]->isPair()) {
-        throw LispError("cdr: arguments must be a list.");
+        throwTypeError("cdr","lists");
     }
     return std::static_pointer_cast<PairValue>(params[0])->getCdr();
 }
@@ -141,26 +152,22 @@ ValuePtr cdr(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env)
 ValuePtr multiply(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     double result = 1;
     for (const auto &i: params) {
-        if (i->isNum()) {
-            result *= *i->asNumber();
+        if (auto num=i->asNumber()) {
+            result *= *num;
         } else {
-            throw LispError("add: arguments must be numbers.");
+            throwTypeError("multiply","numbers");
         }
     }
     return std::make_shared<NumericValue>(result);
 }
 
 ValuePtr apply(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("apply: arguments must be 2.");
-    }
+    checkExactSize(params, 2, "apply");
     return EvalEnv::apply(params[0], params[1]->toVector(), env);
 }
 
 ValuePtr display(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//对于stringvalue输出内容，对于其他输出string表示
-    if (params.size() != 1) {
-        throw LispError("display: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "display");
     if (params[0]->isString()) {
         std::cout << params[0]->internalToString();
     } else {
@@ -176,10 +183,9 @@ ValuePtr displayln(const std::vector<ValuePtr> &params, EvalEnv &env) {//display
 }
 
 ValuePtr error(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
+    checkMaxSize(params, 1, "error");
     if (params.empty()) {
         throw LispError("default error message");
-    } else if (params.size() != 1) {
-        throw LispError("error: arguments more than 1.");
     }
     throw LispError(params[0]->toString());
 }
@@ -189,99 +195,74 @@ ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("cons: arguments must be 2.");
-    }
+    checkExactSize(params, 2, "cons");
     return std::make_shared<PairValue>(params[0], params[1]);
 }
 
 ValuePtr builtinExit(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
+    checkMaxSize(params, 1, "exit");
     if (params.empty()) {
         exit(0);
     }
-    if (params.size() == 1) {
-        if (params[0]->isInt()) {
-            exit(*params[0]->asNumber());  // NOLINT(*-narrowing-conversions)
-        }
+    if (params[0]->isInt()) {
+        exit(*params[0]->asNumber());  // NOLINT(*-narrowing-conversions)
     }
-    throw LispError("exit: arguments must be an integer");
+    throwTypeError("exit","integers");
 }
 
 ValuePtr newline(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (!params.empty()) {
-        throw LispError("newline: arguments must be 0.");
-    }
+    checkExactSize(params, 0, "newline");
     std::cout << std::endl;
     return std::make_shared<NilValue>();
 }
 
 ValuePtr atomCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("atom?: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "atom?");
     return std::make_shared<BooleanValue>(params[0]->isSelfEvaluating() || params[0]->isNil() || params[0]->isSymbol());
 }
 
 ValuePtr booleanCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("boolean?: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "boolean?");
     return std::make_shared<BooleanValue>(params[0]->isBool());
 }
 
 ValuePtr intergerCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("integer?: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "integer?");
     return std::make_shared<BooleanValue>(params[0]->isInt());
 }
 
 ValuePtr listCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("list?: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "list?");
     return std::make_shared<BooleanValue>(params[0]->isList());
 }
 
 ValuePtr numberCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("number?: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "number?");
     return std::make_shared<BooleanValue>(params[0]->isNum());
 }
 
 ValuePtr nullCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("null?: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "null?");
     return std::make_shared<BooleanValue>(params[0]->isNil());
 }
 
 ValuePtr pairCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("pair?: arguments muse be 1");
-    }
+    checkExactSize(params, 1, "pair?");
     return std::make_shared<BooleanValue>(params[0]->isPair());
 }
 
 ValuePtr procedureCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("builtin?: arguments muse be 1");
-    }
+    checkExactSize(params, 1, "procedure?");
     return std::make_shared<BooleanValue>(params[0]->isBuiltin() || params[0]->isLambda());
 }
 
 ValuePtr stringCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("builtin?: arguments muse be 1");
-    }
+    checkExactSize(params, 1, "string?");
     return std::make_shared<BooleanValue>(params[0]->isString());
 }
 
 ValuePtr symbolCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throw LispError("builtin?: arguments muse be 1");
-    }
+    checkExactSize(params, 1, "symbol?");
     return std::make_shared<BooleanValue>(params[0]->isSymbol());
 }
 
@@ -290,7 +271,7 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
         return std::make_shared<NilValue>();
     }
     if (!params[0]->isList()) {//如果第一个参数不是list,抛出异常
-        throw LispError("append: arguments must be lists.");
+        throwTypeError("append","lists");
     }
     auto result = std::static_pointer_cast<PairValue>(params[0]);
     for (int i = 1; i < params.size(); i++) {
@@ -304,9 +285,7 @@ ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env
 }
 
 ValuePtr map(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("map: arguments must be 2.");
-    }
+    checkExactSize(params, 2, "map");
     if (!params[0]->isBuiltin()) {
         throw LispError("map: first argument must be a procedure.");
     }
@@ -316,7 +295,7 @@ ValuePtr map(const std::vector<ValuePtr> &params, EvalEnv &env) {
     const auto &proc = params[0];
     auto list = params[1]->toVector();
     std::vector<ValuePtr> result;
-    result.reserve(list.size());//预留空间(clang-tidy)
+    result.reserve(list.size());//预留空间
     for (const auto &i: list) {
         result.push_back(EvalEnv::apply(proc, {i}, env));
     }
@@ -324,9 +303,7 @@ ValuePtr map(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr reduce(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("reduce: arguments must be 2.");
-    }
+    checkExactSize(params, 2, "reduce");
     if (!params[0]->isBuiltin()) {
         throw LispError("reduce: first argument must be a procedure.");
     }
@@ -335,19 +312,17 @@ ValuePtr reduce(const std::vector<ValuePtr> &params, EvalEnv &env) {
     }
     const auto &proc = params[0];
     auto list = std::static_pointer_cast<PairValue>(params[1]);
-    if (list->getCdr()->isNil()) {
+    if (list->getCdr()->isNil()) {//如果只有一个元素,返回这个元素
         return list->getCar();
     }
-    auto result = EvalEnv::apply(proc, {list->getCar(), reduce({proc, list->getCdr()}, env)}, env);
+    auto result = EvalEnv::apply(proc, {list->getCar(), reduce({proc, list->getCdr()}, env)}, env);//递归调用
     return result;
 }
 
 ValuePtr divide(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=2){
-        throw LispError("divide: arguments must be 2 numbers.");
-    }
+    checkExactSize(params, 2, "/");
     if(!(params[0]->isNum()&&params[1]->isNum())){
-        throw LispError("divide: arguments must be numbers.");
+        throwTypeError("/","numbers");
     }
     if(*params[1]->asNumber()==0){
         throw LispError("divide: divisor can't be zero.");
@@ -356,78 +331,72 @@ ValuePtr divide(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr expt(const std::vector<ValuePtr> &params, EvalEnv &env){
-    if(params.size()!=2){
-        throw LispError("expt: arguments must be 2 numbers.");
+    checkExactSize(params, 2, "expt");
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if(!(x&&y)){
+        throwTypeError("expt","numbers");
     }
-    if(!(params[0]->isNum()&&params[1]->isNum())){
-        throw LispError("expt: arguments must be numbers.");
-    }
-    auto x=*params[0]->asNumber();
-    auto y=*params[1]->asNumber();
-    if(x==0&&y==0){
+    if(*x==0&&*y==0){
         throw LispError("expt: 0^0 is undefined.");
     }
-    return std::make_shared<NumericValue>(std::pow(x,y));
+    return std::make_shared<NumericValue>(std::pow(*x,*y));
 }
 
 ValuePtr quotient(const std::vector<ValuePtr> &params, EvalEnv &env){
-    if(params.size()!=2){
-        throw LispError("quotient: arguments must be 2 numbers.");
-    }
-    if(!(params[0]->isNum()&&params[1]->isNum())){
-        throw LispError("quotient: arguments must be numbers.");
+    checkExactSize(params, 2, "quotient");
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if(!(x&&y)){
+        throwTypeError("quotient","numbers");
     }
     if(*params[1]->asNumber()==0){
         throw LispError("quotient: divisor can't be zero.");
     }
-    return std::make_shared<NumericValue>(int(*params[0]->asNumber()/ *params[1]->asNumber()));
+    return std::make_shared<NumericValue>(int(*x/ *y));
 }
 
 ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, EvalEnv &env){
-    if(params.size()!=2){
-        throw LispError("remainder: arguments must be 2 numbers.");
+    checkExactSize(params, 2, "remainder");
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if(!(x&&y)){
+        throwTypeError("remainder","numbers");
     }
-    if(!(params[0]->isNum()&&params[1]->isNum())){
-        throw LispError("remainder: arguments must be numbers.");
-    }
-    if(*params[1]->asNumber()==0){
+    if(*y==0){
         throw LispError("remainder: divisor can't be zero.");
     }
     if(!(params[0]->isInt() && params[1]->isInt())){
-        throw LispError("remainder: arguments must be integers.");
+        throwTypeError("remainder","integers");
     }
-    return std::make_shared<NumericValue>(int(*params[0]->asNumber())%int(*params[1]->asNumber()));
+    return std::make_shared<NumericValue>(int(*x)%int(*y));
 }
 
 ValuePtr modulo(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("modulo: arguments must be 2 numbers.");
+    checkExactSize(params, 2, "modulo");
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if (!(x&&y)) {
+        throwTypeError("modulo","numbers");
     }
-    if (!(params[0]->isNum() && params[1]->isNum())) {
-        throw LispError("modulo: arguments must be numbers.");
-    }
-    if (*params[1]->asNumber() == 0) {
+    if (*y== 0) {
         throw LispError("modulo: divisor can't be zero.");
     }
     if (!(params[0]->isInt() && params[1]->isInt())) {
-        throw LispError("modulo: arguments must be integers.");
+        throwTypeError("modulo","integers");
     }
-    auto x=int(*params[0]->asNumber());
-    auto y=int(*params[1]->asNumber());
-    return std::make_shared<NumericValue>((x%y+y)%y);
+    auto xint=int(*x);
+    auto yint=int(*y);
+    return std::make_shared<NumericValue>((xint%yint+yint)%yint);
 }
 
 ValuePtr equalCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("equalCheck: arguments must be 2.");
-    }
+    checkExactSize(params, 2, "equal?");
     return std::make_shared<BooleanValue>(*params[0]==*params[1]);
 }
 
 ValuePtr eqCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("eqCheck: arguments must be 2.");
-    }
+    checkExactSize(params, 2, "eq?");
     if(params[0]->isPair()&&params[1]->isPair() ||params[0]->isString()&&params[1]->isString()){
         return std::make_shared<BooleanValue>(params[0]==params[1]);
     }
@@ -435,82 +404,67 @@ ValuePtr eqCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr notCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size() != 1) {
-        throw LispError("notCheck: arguments must be 1.");
-    }
+    checkExactSize(params, 1, "not");
     return std::make_shared<BooleanValue>(!*params[0]->asBool());
 }
 
 ValuePtr equalSignCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {
-        throw LispError("equalSignCheck: arguments must be 2.");
-    }
-    if(!(params[0]->isNum()&&params[1]->isNum())){
+    checkExactSize(params, 2, "=");
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if(!(x&&y)){
         throw LispError("equalSignCheck: arguments must be numbers.");
     }
-    auto x=*params[0]->asNumber();
-    auto y=*params[1]->asNumber();
-    return std::make_shared<BooleanValue>(x==y);
+    return std::make_shared<BooleanValue>(*x==*y);
 }
 
 ValuePtr greaterThanOrEqual(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=2){
-        throw LispError("greaterThanOrEqual: arguments must be 2 numbers.");
+    checkExactSize(params, 2, ">=");
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if(!(x&&y)){
+        throw LispError(">=: arguments must be numbers.");
     }
-    if(!(params[0]->isNum()&&params[1]->isNum())){
-        throw LispError("greaterThanOrEqual: arguments must be numbers.");
-    }
-    auto x=*params[0]->asNumber();
-    auto y=*params[1]->asNumber();
-    return std::make_shared<BooleanValue>(x>=y);
+    return std::make_shared<BooleanValue>(*x>=*y);
 }
 
 ValuePtr lessThanOrEqual(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=2){
-        throw LispError("lessThanOrEqual: arguments must be 2 numbers.");
+    checkExactSize(params, 2, "<=");
+    auto x=params[0]->asNumber();
+    auto y=params[1]->asNumber();
+    if(!(x&&y)){
+        throw LispError("<=: arguments must be numbers.");
     }
-    if(!(params[0]->isNum()&&params[1]->isNum())){
-        throw LispError("lessThanOrEqual: arguments must be numbers.");
-    }
-    auto x=*params[0]->asNumber();
-    auto y=*params[1]->asNumber();
-    return std::make_shared<BooleanValue>(x<=y);
+    return std::make_shared<BooleanValue>(*x<=*y);
 }
 
 ValuePtr evenCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=1){
-        throw LispError("evenCheck: arguments must be 1 number.");
-    }
+    checkExactSize(params, 1, "even?");
     if(!params[0]->isInt()){
-        throw LispError("evenCheck: arguments must be an integer.");
+        throwTypeError("evenCheck","integers");
     }
     return std::make_shared<BooleanValue>(int(*params[0]->asNumber())%2==0);
 }
 
 ValuePtr oddCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=1){
-        throw LispError("oddCheck: arguments must be 1 number.");
-    }
+    checkExactSize(params, 1, "odd?");
     if(!params[0]->isInt()){
-        throw LispError("oddCheck: arguments must be an integer.");
+        throwTypeError("odd?","integers");
     }
     return std::make_shared<BooleanValue>(int(*params[0]->asNumber())%2!=0);
 }
 
 ValuePtr zeroCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=1){
-        throw LispError("zeroCheck: arguments must be 1 number.");
+    checkExactSize(params, 1, "zero?");
+    auto x=params[0]->asNumber();
+    if(!x){
+        throwTypeError("zero?","numbers");
     }
-    if(!params[0]->isNum()){
-        throw LispError("zeroCheck: arguments must be a number.");
-    }
-    return std::make_shared<BooleanValue>(*params[0]->asNumber()==0);
+    return std::make_shared<BooleanValue>(*x==0);
 }
 
 ValuePtr filter(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()!=2){
-        throw LispError("filter: arguments must be 2.");
-    }
+    checkExactSize(params, 2, "filter");
     if(!params[0]->isBuiltin()){
         throw LispError("filter: first argument must be a procedure.");
     }
@@ -522,7 +476,7 @@ ValuePtr filter(const std::vector<ValuePtr> &params, EvalEnv &env) {
     std::vector<ValuePtr> result;
     result.reserve(list.size());//预留空间(clang-tidy)
     for(const auto &i:list){
-        if(*env.apply(proc,{i},env)->asBool()){
+        if(*EvalEnv::apply(proc,{i},env)->asBool()){
             result.push_back(i);
         }
     }

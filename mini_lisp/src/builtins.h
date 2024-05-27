@@ -10,6 +10,9 @@
 
 
 extern std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs;
+void checkExactSize(const std::vector<ValuePtr> &params, int size, const std::string &name);
+
+void checkMinSize(const std::vector<ValuePtr> &params, int size, const std::string &name);
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 

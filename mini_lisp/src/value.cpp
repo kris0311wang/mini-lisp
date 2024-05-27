@@ -288,7 +288,7 @@ LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> 
 }
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
-    if (args.size() < params.size()) {//创建子表达式
+    if (args.size() < params.size()) {//传入参数不够则创建子表达式
         std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body,
                                                                                  lambdaEnv->createChild());
         for (auto i = 0; i < args.size(); i++) {//将参数绑定到子表达式的环境中
@@ -301,15 +301,7 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     for (size_t i = 0; i < params.size(); i++) {
         lambdaEnv->defineBinding(params[i], args[i]);
     }
-    if (body.size() == 1) {
-        result = lambdaEnv->eval(body);
-    } else {
-        auto resultVector = std::vector<ValuePtr>();
-        for (auto i = 0; i < body.size(); i++) {
-            resultVector.push_back(lambdaEnv->eval(body[i]));
-        }
-        result = lambdaEnv->eval(resultVector);
-    }
+    result= lambdaEnv->eval(body);
     return result;
 }
 

@@ -23,4 +23,7 @@ ValuePtr ifForm(const std::vector<ValuePtr> &params, EvalEnv &env);//if特殊形
 ValuePtr andForm(const std::vector<ValuePtr> &params, EvalEnv &env);//and特殊形式的函数
 ValuePtr orForm(const std::vector<ValuePtr> &params, EvalEnv &env);//or特殊形式的函数
 ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env);//lambda特殊形式的函数
+ValuePtr condForm(const std::vector<ValuePtr> &params, EvalEnv &env);//cond特殊形式的函数
+ValuePtr beginForm(const std::vector<ValuePtr> &params, EvalEnv &env);//begin特殊形式的函数
+ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env);//let特殊形式的函数
 #endif //MINI_LISP_FORMS_H

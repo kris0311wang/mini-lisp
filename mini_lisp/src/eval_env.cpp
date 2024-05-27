@@ -99,7 +99,11 @@ ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的�
         return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
     }else if (expr.size() == 1 ) {//移植
         return eval(expr[0]);
-    } else if (expr[0]->isSymbol()) {//如果第一个元素是符号
+    }//接下来都是多于1个元素的情况。递归计算第一个元素
+    else if(expr[0]->isSelfEvaluating()) {//如果第一个元素是自求值类型,则返回下一个表达式的结果
+        return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
+    }
+    else if (expr[0]->isSymbol()) {//如果第一个元素是符号
         auto name = expr[0]->asSymbol();
         if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
             return SPECIAL_FORMS.at(*name)(std::vector<ValuePtr>(expr.begin() + 1, expr.end()), *this);
@@ -108,10 +112,11 @@ ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的�
             std::vector<ValuePtr> args = evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
             return apply(proc, args, *this);
         }
-    } else if (expr[0]->isBuiltin()) {//如果第一个元素是内置函数,调用
+    } else if (expr[0]->isBuiltin()||expr[0]->isLambda()) {//如果第一个元素是内置函数,调用
         return apply(expr[0], evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end())), *this);
-    } else if (expr[0]->isPair() && expr.size() == 1) {//如果第一个元素是表达式，计算
-        return eval(expr[0]);
+    } else if (expr[0]->isPair() ) {//如果第一个元素是表达式，计算之后pop掉
+        eval(expr[0]);
+        return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
     }
     throw LispError("evalVector Unimplemented");
 }
