@@ -52,7 +52,8 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"<=",    std::make_shared<BuiltinProcValue>("<=", lessThanOrEqual)},
         {"even?", std::make_shared<BuiltinProcValue>("even?", evenCheck)},
         {"odd?",  std::make_shared<BuiltinProcValue>("odd?", oddCheck)},
-        {"zero?",std::make_shared<BuiltinProcValue>{"zero?",zeroCheck}}
+        {"zero?",std::make_shared<BuiltinProcValue>("zero?",zeroCheck)},
+        {"filter",std::make_shared<BuiltinProcValue>("filter",filter)}
 };  // 内建函数的map
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
@@ -504,6 +505,28 @@ ValuePtr zeroCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
         throw LispError("zeroCheck: arguments must be a number.");
     }
     return std::make_shared<BooleanValue>(*params[0]->asNumber()==0);
+}
+
+ValuePtr filter(const std::vector<ValuePtr> &params, EvalEnv &env) {
+    if(params.size()!=2){
+        throw LispError("filter: arguments must be 2.");
+    }
+    if(!params[0]->isBuiltin()){
+        throw LispError("filter: first argument must be a procedure.");
+    }
+    if(!params[1]->isList()){
+        throw LispError("filter: second argument must be a list.");
+    }
+    const auto &proc=params[0];
+    auto list=params[1]->toVector();
+    std::vector<ValuePtr> result;
+    result.reserve(list.size());//预留空间(clang-tidy)
+    for(const auto &i:list){
+        if(*env.apply(proc,{i},env)->asBool()){
+            result.push_back(i);
+        }
+    }
+    return std::make_shared<PairValue>(result);
 }
 
 #pragma clang diagnostic pop
