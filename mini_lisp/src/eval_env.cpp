@@ -91,7 +91,7 @@ ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args,
     } else if (proc->isLambda()) {
         return std::static_pointer_cast<LambdaValue>(proc)->apply(args);
     } else {
-        throw LispError("apply not a procedure");
+        throw LispError("apply expected a procedure but got "+proc->toString());
     }
 }
 
@@ -113,7 +113,8 @@ ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的�
         } else {//如果不是特殊形式,那么第一个元素是过程，调用apply函数
             ValuePtr proc = eval(expr[0]);
             std::vector<ValuePtr> args = evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
-            return apply(proc, args, *this);
+            auto result= apply(proc, args, *this);
+            return result;
         }
     } else if (expr[0]->isBuiltin()||expr[0]->isLambda()) {//如果第一个元素是内置函数,调用
         return apply(expr[0], evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end())), *this);

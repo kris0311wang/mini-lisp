@@ -80,10 +80,13 @@ void checkMaxSize(const std::vector<ValuePtr> &params, int size, const std::stri
 }
 
 ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
-    double result = 0;
+    if (params.empty()) {
+        return std::make_shared<NumericValue>(0);
+    }
+    double result=0;
     for (const auto &i: params) {
         if (auto num = i->asNumber()){
-            result += *num;
+             result += *num;
         } else {
             throwTypeError("add","numbers");
         }
@@ -133,11 +136,9 @@ ValuePtr length(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
 }
 
 ValuePtr car(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if (params.size() != 1) {
-        throwTypeError("car","lists");
-    }
+    checkExactSize(params, 1, "car");
     if (!params[0]->isPair()) {
-        throwTypeError("car","lists");
+        throwTypeError("car","pairs");
     }
     return std::static_pointer_cast<PairValue>(params[0])->getCar();
 }

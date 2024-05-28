@@ -120,7 +120,7 @@ ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
             throw LispError("lambda form's first argument must be a list of symbols.");
         }
     }
-    return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector(), env.createChild());
+    return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector(), env.shared_from_this());
 }
 
 ValuePtr condForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
@@ -163,9 +163,9 @@ ValuePtr beginForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
     return result;
 }
 
-ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
+ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {//(let 绑定 表达式)
     checkMinSize(params, 2, "let");//检查参数个数是否大于等于2
-    auto bindings=params[0]->toVector();//获取绑定
+    auto bindings=std::static_pointer_cast<PairValue>(params[0])->toVector();//获取绑定
     auto expressions=std::vector<ValuePtr>(params.begin()+1,params.end());//获取表达式
     auto newEnv=env.createChild();//创建新环境
     std::vector<std::string> paramNamesStrVector;
@@ -174,18 +174,19 @@ ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
         if(!i->isPair()){
             throw LispError("let form's first argument must be a list of pairs.");
         }
-        auto pairExpression=std::static_pointer_cast<PairValue>(i);
-        if(!pairExpression->getCar()->isSymbol()){
-            throw LispError("let form's first argument must be a list of pairs.");
+        auto bindingVector=i->toVector();
+        checkExactSize(bindingVector,2,"let Form's binding pair");
+        auto name=bindingVector[0]->asSymbol();//获取名字
+        auto value=bindingVector[1];//获取值
+        if(!name) {
+            throwTypeError("let Form's binding pair's first element", "symbol");
         }
-        auto name=pairExpression->getCar()->asSymbol();
-        auto value=pairExpression->getCdr();
+        newEnv->defineBinding(*name,value);//将值绑定到名字
         paramNamesStrVector.push_back(*name);
-        auto exprValue=singleElementToAtom(value);
-        paramValuesVector.push_back(exprValue);
+        paramValuesVector.push_back(newEnv->eval(value));//初始值
     }
-    LambdaValue letLambda=LambdaValue(paramNamesStrVector,expressions,newEnv);
-    return letLambda.apply(paramValuesVector);
+    auto letLambda=std::make_shared<LambdaValue>(paramNamesStrVector,expressions,newEnv);
+    return letLambda->apply(paramValuesVector);
 }
 
 ValuePtr quasiquoteForm(const std::vector<ValuePtr> &params,EvalEnv& env){

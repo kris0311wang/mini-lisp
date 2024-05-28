@@ -46,13 +46,15 @@ public:
 
     virtual std::shared_ptr<Value> toQuote();
 
-    virtual std::optional<double> asNumber() const;
+    std::optional<double> asNumber() const;
 
-    virtual bool isBuiltin() const;
+    bool isBuiltin() const;
 
     virtual bool isInt() const;
 
     bool isLambda() const;
+
+    bool isAtom() const;
 };
 
 using ValuePtr = std::shared_ptr<Value>;
@@ -86,6 +88,7 @@ public:
 
     ValuePtr toQuote() override;
 
+    void setValue(const double& value);
 };
 
 class NilValue : public Value {

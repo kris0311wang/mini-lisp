@@ -172,13 +172,14 @@ std::string PairValue::toString() const {
 
 std::vector<std::shared_ptr<Value>> PairValue::toVector() {//PairValue转vector
     std::vector<ValuePtr> result;
-    ValuePtr temp = std::make_shared<PairValue>(*this);
-    while (temp->isPair()) {
-        result.push_back(std::dynamic_pointer_cast<PairValue>(temp)->car);
-        temp = std::dynamic_pointer_cast<PairValue>(temp)->cdr;
-    }
-    if (temp && !temp->isNil()) {
-        result.push_back(temp);
+    ValuePtr temp=std::make_shared<PairValue>(*this);
+    while(temp->isList()){
+        if(temp->isNil()){
+            break;
+        }
+        auto tempList=std::dynamic_pointer_cast<PairValue>(temp);
+        result.push_back(tempList->getCar());
+        temp=tempList->getCdr();
     }
     return result;
 }
@@ -286,6 +287,10 @@ ValuePtr NumericValue::toQuote() {
     return shared_from_this();
 }
 
+void NumericValue::setValue(const double& value) {
+    this->value = value;
+}
+
 std::string LambdaValue::toString() const {
     return "#<procedure>";
 }
@@ -300,8 +305,7 @@ LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> 
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     if (args.size() < params.size()) {//传入参数不够则创建子表达式
-        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body,
-                                                                                 lambdaEnv->createChild());
+        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body,lambdaEnv->createChild());
         for (auto i = 0; i < args.size(); i++) {//将参数绑定到子表达式的环境中
             childLambda->lambdaEnv->defineBinding(params[i], args[i]);
             childLambda->params.erase(childLambda->params.begin());//删除已经绑定的参数
@@ -309,10 +313,11 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
         return childLambda;
     }
     ValuePtr result;
+    auto childEnv = lambdaEnv->createChild();
     for (size_t i = 0; i < params.size(); i++) {
-        lambdaEnv->defineBinding(params[i], args[i]);
+        childEnv->defineBinding(params[i], args[i]);
     }
-    result= lambdaEnv->eval(body);
+    result= childEnv->eval(body);
     return result;
 }
 
@@ -322,4 +327,11 @@ ValuePtr SymbolValue::toQuote() {
 
 std::string StringValue::getValue(){
     return value;
+}
+
+bool Value::isAtom() const {
+    if(isPair()){
+        return false;
+    }
+    return true;
 }
