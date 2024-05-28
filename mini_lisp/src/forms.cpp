@@ -19,6 +19,17 @@ const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS{
 //    {"set!", &setForm},
 };
 
+ValuePtr singleElementToAtom(const ValuePtr &value) {
+    if(value->isList()){
+        auto list=value->toVector();
+        if(list.size()==1){
+            return list[0];
+        }
+        throw LispError("singleElementToAtom: list size is not 1");
+    }
+    return value;
+}
+
 ValuePtr defineForm(const std::vector<ValuePtr> &args, EvalEnv &env) {
     if (args[0]->isSymbol()) {//普通形式的定义
         env.defineBinding(*args[0]->asSymbol(), env.eval(args[1]));
@@ -173,7 +184,7 @@ ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
         auto name=pairExpression->getCar()->asSymbol();
         auto value=pairExpression->getCdr();
         paramNamesStrVector.push_back(*name);
-        paramValuesVector.push_back(value);
+        paramValuesVector.push_back(singleElementToAtom(value));
     }
     LambdaValue letLambda=LambdaValue(paramNamesStrVector,expressions,newEnv);
     return letLambda.apply(paramValuesVector);

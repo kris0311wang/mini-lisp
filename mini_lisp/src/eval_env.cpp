@@ -41,6 +41,7 @@ EvalEnv::EvalEnv() : parent(nullptr) {//初始化符号表,将内置函数添加
     for (auto &i: builtin_funcs) {
         defineBinding(i.first, i.second);
     }
+    defineBinding ("else",std::make_shared<SymbolValue>("else"));//else仅在cond中使用，特殊处理
 }
 
 void EvalEnv::defineBinding(const std::string &name, const ValuePtr &value) {//将name和value添加到符号表中
