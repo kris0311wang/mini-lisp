@@ -75,7 +75,10 @@ bool StringValue::operator==(const Value &rhs) const {
 }
 
 bool BuiltinProcValue::operator==(const Value &rhs) const {
-throw LispError("BuiltinProcValue operator== undefined!");
+    if(!rhs.isBuiltin()){
+        return false;
+    }
+    throw LispError("BuiltinProcValue operator== undefined!");
 }
 
 bool LambdaValue::operator==(const Value &rhs) const {
@@ -193,11 +196,11 @@ void PairValue::append(const ValuePtr &valueptr) {
     while(temp->cdr->isPair()){
         temp=std::dynamic_pointer_cast<PairValue>(temp->cdr);
     }
-    if(temp->cdr->isNil()){
+    if(temp->cdr->isNil()){//当前对象是list
         temp->cdr=valueptr;
     }
     else{
-        throw LispError("PairValue append error");
+        throw LispError("PairValue::append error: params should be lists.");
     }
 }
 std::shared_ptr<Value> PairValue::toQuote() {
@@ -315,4 +318,8 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
 
 ValuePtr SymbolValue::toQuote() {
     return shared_from_this();//对于符号，quote返回自身
+}
+
+std::string StringValue::getValue(){
+    return value;
 }

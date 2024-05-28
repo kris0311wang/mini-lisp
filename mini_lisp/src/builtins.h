@@ -105,4 +105,6 @@ ValuePtr oddCheck(const std::vector<ValuePtr> &params, EvalEnv &env);
 ValuePtr zeroCheck(const std::vector<ValuePtr> &params, EvalEnv &env);
 
 ValuePtr filter(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
+ValuePtr absoluteValue(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 #endif  // MINI_LISP_BUILTINS_H
