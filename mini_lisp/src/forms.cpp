@@ -110,7 +110,7 @@ ValuePtr orForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    checkExactSize(params, 2, "lambda");//检查参数个数是否为2
+    checkMinSize(params, 2, "lambda");//检查参数个数是否为2
     auto paramNamesValuePtrVector = params[0]->toVector();
     std::vector<std::string> paramNamesStrVector;
     for (const auto &i: paramNamesValuePtrVector) {
@@ -120,7 +120,7 @@ ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
             throw LispError("lambda form's first argument must be a list of symbols.");
         }
     }
-    return std::make_shared<LambdaValue>(paramNamesStrVector, params[1]->toVector(), env.shared_from_this());
+    return std::make_shared<LambdaValue>(paramNamesStrVector, std::vector<ValuePtr>(params.begin()+1,params.end()), env.shared_from_this());
 }
 
 ValuePtr condForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
@@ -155,12 +155,10 @@ ValuePtr beginForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
     }
     ValuePtr result;
     std::vector<ValuePtr> resultVector;
-    for (const auto &i: params) {
-        result = env.eval(i);
-        resultVector.push_back(result);
+    for(int i=0;i<params.size()-1;i++){
+        result=env.eval(params[i]);
     }
-    result=env.eval(resultVector);
-    return result;
+    return env.eval(params[params.size()-1]);
 }
 
 ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {//(let 绑定 表达式)

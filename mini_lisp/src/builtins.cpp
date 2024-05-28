@@ -279,11 +279,12 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
     if(beginIndex==params.size()){//如果全是空表,返回空表
         return std::make_shared<NilValue>();
     }
-    auto result=std::static_pointer_cast<PairValue>(params[beginIndex]);//将第一个非空表的参数转化为vector
+    auto resultVector=params[beginIndex]->toVector();
     for (int i=beginIndex+1; i < params.size(); i++) {
-        result->append(params[i]);//将params[i]加入到result的最后
+        auto tempVector = params[i]->toVector();
+        resultVector.insert(resultVector.end(), tempVector.begin(), tempVector.end());
     }
-    return result;
+    return std::make_shared<PairValue>(resultVector);
 }
 
 ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {

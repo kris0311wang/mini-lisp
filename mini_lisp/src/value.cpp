@@ -192,18 +192,6 @@ ValuePtr PairValue::getCdr() const {
     return cdr;
 }
 
-void PairValue::append(const ValuePtr &valueptr) {
-    auto temp=std::make_shared<PairValue>(*this);
-    while(temp->cdr->isPair()){
-        temp=std::dynamic_pointer_cast<PairValue>(temp->cdr);
-    }
-    if(temp->cdr->isNil()){//当前对象是list
-        temp->cdr=valueptr;
-    }
-    else{
-        throw LispError("PairValue::append error: params should be lists.");
-    }
-}
 std::shared_ptr<Value> PairValue::toQuote() {
     return std::make_shared<PairValue>(car->toQuote(), cdr->toQuote());//对于对子，quote递归调用toquote最后返回一个对子
 }

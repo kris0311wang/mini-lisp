@@ -55,6 +55,7 @@ public:
     bool isLambda() const;
 
     bool isAtom() const;
+
 };
 
 using ValuePtr = std::shared_ptr<Value>;
