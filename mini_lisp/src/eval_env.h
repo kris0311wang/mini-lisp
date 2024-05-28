@@ -18,7 +18,7 @@ class EvalEnv : public std::enable_shared_from_this<EvalEnv> {
     std::unordered_map<std::string, ValuePtr> symbolTable;//unimplemented
     std::shared_ptr<EvalEnv> parent = nullptr;
 public:
-    EvalEnv();
+    EvalEnv(bool root);
 
     ValuePtr eval(ValuePtr expr);
 

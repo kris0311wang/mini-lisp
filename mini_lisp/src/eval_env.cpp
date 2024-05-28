@@ -37,11 +37,13 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
     }
 }
 
-EvalEnv::EvalEnv() : parent(nullptr) {//初始化符号表,将内置函数添加到符号表中,并将parent指针初始化为nullptr
-    for (auto &i: builtin_funcs) {
-        defineBinding(i.first, i.second);
+EvalEnv::EvalEnv(bool root) : parent(nullptr){//初始化符号表,将内置函数添加到符号表中,并将parent指针初始化为nullptr
+    if(root) {
+        for (auto &i: builtin_funcs) {
+            defineBinding(i.first, i.second);
+        }
+        defineBinding("else", std::make_shared<SymbolValue>("else"));//else仅在cond中使用，特殊处理
     }
-    defineBinding ("else",std::make_shared<SymbolValue>("else"));//else仅在cond中使用，特殊处理
 }
 
 void EvalEnv::defineBinding(const std::string &name, const ValuePtr &value) {//将name和value添加到符号表中
@@ -123,13 +125,13 @@ ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的�
 }
 
 std::shared_ptr<EvalEnv> EvalEnv::createChild() {
-    auto child = EvalEnv();
+    auto child = EvalEnv(false);
     child.parent = shared_from_this();
     return std::make_shared<EvalEnv>(child);
 }
 
 std::shared_ptr<EvalEnv> EvalEnv::createGlobal() {
-    auto global = EvalEnv();
+    auto global = EvalEnv(true);
     return std::make_shared<EvalEnv>(global);
 }
 

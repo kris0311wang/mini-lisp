@@ -26,4 +26,5 @@ ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env);//lambda�
 ValuePtr condForm(const std::vector<ValuePtr> &params, EvalEnv &env);//cond特殊形式的函数
 ValuePtr beginForm(const std::vector<ValuePtr> &params, EvalEnv &env);//begin特殊形式的函数
 ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env);//let特殊形式的函数
+ValuePtr quasiquoteForm(const std::vector<ValuePtr> &params,EvalEnv& env);
 #endif //MINI_LISP_FORMS_H

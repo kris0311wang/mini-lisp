@@ -5,7 +5,7 @@
 #include"error.h"
 #include"value.h"
 #include"eval_env.h"
-
+#include"builtins.h"
 const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS{
         {"define", &defineForm},
         {"if",     &ifForm},
@@ -16,8 +16,17 @@ const std::unordered_map<std::string, SpecialFormType *> SPECIAL_FORMS{
         {"cond",&condForm},
         {"begin",&beginForm},
         {"let",&letForm},
+        {"quasiquote",&quasiquoteForm},
+        {"quasiquote",&quasiquoteForm},
 //    {"set!", &setForm},
 };
+void checkMinSize(const std::vector<ValuePtr> &params, int size, const std::string &name);
+
+void checkExactSize(const std::vector<ValuePtr> &params, int size, const std::string &name);
+
+void checkMaxSize(const std::vector<ValuePtr> &params, int size, const std::string &name);
+
+void throwTypeError(const std::string &name, const std::string &expectedType);
 
 ValuePtr singleElementToAtom(const ValuePtr &value) {
     if(value->isList()){
@@ -34,7 +43,7 @@ ValuePtr defineForm(const std::vector<ValuePtr> &args, EvalEnv &env) {
     if (args[0]->isSymbol()) {//普通形式的定义
         env.defineBinding(*args[0]->asSymbol(), env.eval(args[1]));
         return std::make_shared<NilValue>();
-    } else if (args[0]->isPair() && args[1]->isPair()) {//lambda形式的定义
+    } else if (args[0]->isPair() ) {//lambda形式的定义
         auto paramsVector = args[0]->toVector();//获取lambda参数
         auto bodyVector = std::vector<ValuePtr>(args.begin() + 1, args.end());//获取lambda体
         if (!paramsVector[0]->isSymbol()) {
@@ -59,16 +68,13 @@ ValuePtr defineForm(const std::vector<ValuePtr> &args, EvalEnv &env) {
 
 
 ValuePtr quoteForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 1) {//quote特殊形式只能有一个参数
-        throw LispError("quote form must have exactly one argument.");
-    }
+    checkExactSize(params, 1, "quote");//检查参数个数是否为1
     return params[0]->toQuote();
 }
 
 ValuePtr ifForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 3) {  // if特殊形式只能有三个参数
-        throw LispError("if form must have exactly three arguments.");
-    } else if (*env.eval(params[0])->asBool()) {//如果第一个参数为真
+    checkExactSize(params, 3, "if");//检查参数个数是否为3
+    if (*env.eval(params[0])->asBool()) {//如果第一个参数为真
         return env.eval(params[1]);//返回第二个参数
     } else {
         return env.eval(params[2]);//返回第三个参数
@@ -76,7 +82,6 @@ ValuePtr ifForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr andForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-
     if (params.empty()) {
         return std::make_shared<BooleanValue>(true);
     }
@@ -105,9 +110,7 @@ ValuePtr orForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.size() != 2) {//lambda特殊形式只能有两个参数
-        throw LispError("lambda form must have exactly two arguments.");
-    }
+    checkExactSize(params, 2, "lambda");//检查参数个数是否为2
     auto paramNamesValuePtrVector = params[0]->toVector();
     std::vector<std::string> paramNamesStrVector;
     for (const auto &i: paramNamesValuePtrVector) {
@@ -121,9 +124,7 @@ ValuePtr lambdaForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr condForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if (params.empty()) {
-        throw LispError("cond form must have at least one argument.");
-    }
+    checkMinSize(params, 1, "cond");
     for (const auto &i: params) {
         if(!i->isPair()){
             throw LispError("cond form's arguments must be pairs.");
@@ -147,9 +148,7 @@ ValuePtr condForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr beginForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.empty()) {
-        throw LispError("begin form must have at least one argument.");
-    }
+    checkMinSize(params, 1, "begin");//检查参数个数是否大于等于1
     //其余移植lambda的body计算过程
     if(params.size() == 1) {
         return env.eval(params[0]);
@@ -165,9 +164,7 @@ ValuePtr beginForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    if(params.size()<2){
-        throw LispError("let form must have at least two arguments.");
-    }
+    checkMinSize(params, 2, "let");//检查参数个数是否大于等于2
     auto bindings=params[0]->toVector();//获取绑定
     auto expressions=std::vector<ValuePtr>(params.begin()+1,params.end());//获取表达式
     auto newEnv=env.createChild();//创建新环境
@@ -184,8 +181,30 @@ ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
         auto name=pairExpression->getCar()->asSymbol();
         auto value=pairExpression->getCdr();
         paramNamesStrVector.push_back(*name);
-        paramValuesVector.push_back(singleElementToAtom(value));
+        auto exprValue=singleElementToAtom(value);
+        paramValuesVector.push_back(exprValue);
     }
     LambdaValue letLambda=LambdaValue(paramNamesStrVector,expressions,newEnv);
     return letLambda.apply(paramValuesVector);
+}
+
+ValuePtr quasiquoteForm(const std::vector<ValuePtr> &params,EvalEnv& env){
+    checkExactSize(params,1,"quasiquote");
+    if(params[0]->isPair()){
+        auto pairvalue=std::static_pointer_cast<PairValue>(params[0]);
+        if(auto symbolHead =pairvalue->getCar()->asSymbol()){
+            if(*symbolHead=="unquote"){//如果是unquote开头的对子
+                auto result= env.eval(pairvalue->getCdr()->toVector()[0]);
+                return result->toQuote();
+            }
+        }
+        return std::make_shared<PairValue>(quasiquoteForm({pairvalue->getCar()},env),quasiquoteForm({pairvalue->getCdr()},env));//递归调用quasiquote
+    }
+    return params[0]->toQuote();//其他类型不可能为unquote，直接返回quote
+    throw LispError("quasiquote unimplemented.");
+}
+
+ValuePtr unquoteForm(const std::vector<ValuePtr> &params,EvalEnv& env){
+    checkExactSize(params,1,"unquote");
+
 }

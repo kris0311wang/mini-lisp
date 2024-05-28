@@ -153,7 +153,7 @@ ValuePtr cdr(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env)
 ValuePtr multiply(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     double result = 1;
     for (const auto &i: params) {
-        if (auto num=i->asNumber()) {
+        if (auto num=env.eval(i)->asNumber()) {
             result *= *num;
         } else {
             throwTypeError("multiply","numbers");
