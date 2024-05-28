@@ -373,12 +373,12 @@ ValuePtr quotient(const std::vector<ValuePtr> &params, EvalEnv &env){
     return std::make_shared<NumericValue>(int(*x/ *y));
 }
 
-ValuePtr Value(const std::vector<ValuePtr> &params, EvalEnv &env){
-    checkExactSize(params, 2, "Value");
+ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, EvalEnv &env){
+    checkExactSize(params, 2, "ValueRemainder");
     auto x=params[0]->asNumber();
     auto y=params[1]->asNumber();
     if(!(x&&y)){
-        throwTypeError("Value","numbers");
+        throwTypeError("ValueRemainder","numbers");
     }
     if(*y==0){
         throw LispError("ValueRemainder: divisor can't be zero.");
