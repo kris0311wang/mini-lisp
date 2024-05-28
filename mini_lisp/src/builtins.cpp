@@ -169,7 +169,7 @@ ValuePtr apply(const std::vector<ValuePtr> &params, EvalEnv &env) {
 ValuePtr display(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//对于stringvalue输出内容，对于其他输出string表示
     checkExactSize(params, 1, "display");
     if (params[0]->isString()) {
-        std::cout << params[0]->internalToString();
+        std::cout << std::static_pointer_cast<StringValue>(params[0])->getValue();
     } else {
         std::cout << params[0]->toString();
     }
@@ -281,6 +281,9 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
 }
 
 ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
+    if(params.empty()){//如果参数为空,返回空表
+        return std::make_shared<NilValue>();
+    }
     return std::make_shared<PairValue>(params);
 }
 
@@ -483,4 +486,7 @@ ValuePtr filter(const std::vector<ValuePtr> &params, EvalEnv &env) {
     return std::make_shared<PairValue>(result);
 }
 
+std::string StringValue::getValue(){
+    return value;
+}
 #pragma clang diagnostic pop

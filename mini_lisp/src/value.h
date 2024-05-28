@@ -18,8 +18,6 @@ class Value : public std::enable_shared_from_this<Value> {
 public:
     virtual bool operator==(const Value &rhs) const = 0;
 
-    virtual std::string internalToString() const;
-
     virtual std::string toString() const = 0;
 
     virtual ~Value() = default;
@@ -94,8 +92,6 @@ class NilValue : public Value {
 public:
     bool operator== (const Value &rhs) const override;
 
-    std::string internalToString() const override;
-
     std::string toString() const override;
 
     std::shared_ptr<Value> toQuote() override;
@@ -113,7 +109,6 @@ public:
 
     explicit PairValue(const std::vector<ValuePtr> &values);
 
-    std::string internalToString() const override;
 
     std::string toString() const override;
 
@@ -123,7 +118,7 @@ public:
 
     void append(const ValuePtr &valueptr);
 
-    std::vector<ValuePtr> toVector() override;
+    std::vector<std::shared_ptr<Value>> toVector() override;
 
     std::shared_ptr<Value> toQuote() override;
 };
@@ -143,13 +138,13 @@ public:
 class StringValue : public Value {
     std::string value;
 public:
+    std::string getValue();
+
     bool operator== (const Value &rhs) const override;
 
     explicit StringValue(std::string value) : value(std::move(value)) {}
 
     std::string toString() const override;
-
-    std::string internalToString() const override;
 
     ValuePtr toQuote() override;
 };

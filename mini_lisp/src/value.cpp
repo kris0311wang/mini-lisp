@@ -48,10 +48,6 @@ std::string NilValue::toString() const {
     return "()";
 }
 
-std::string NilValue::internalToString() const {
-    return "";//内部不返回空表两端的括号
-}
-
 std::shared_ptr<Value> NilValue::toQuote() {
     return shared_from_this();//对于空表，quote返回空表
 }
@@ -130,9 +126,6 @@ bool Value::isInt() const{
     return false;
 }
 
-std::string Value::internalToString() const {
-    return toString();
-}
 
 bool Value::isSelfEvaluating() const {
     return isNum() || isBool() || isString() ;
@@ -142,22 +135,39 @@ std::vector<std::shared_ptr<Value>> Value::toVector() {
     return {shared_from_this()};
 }
 
-std::string PairValue::internalToString() const {
-    if (cdr->isNil()) {
-        return car->internalToString();
-    } else if (!cdr->isPair() && cdr) {
-        return car->internalToString() + " . " + cdr->internalToString();
-    } else if (cdr) {
-        return car->internalToString() + " " + cdr->internalToString();
-    }
-    throw LispError("PairValue internalToString error");
-}
+//std::string PairValue::internalToString() const {
+//    if (cdr->isNil()) {
+//        return car->internalToString();
+//    } else if (!cdr->isPair() && cdr) {
+//        return car->internalToString() + " . " + cdr->internalToString();
+//    } else if (cdr) {
+//        return car->internalToString() + " " + cdr->internalToString();
+//    }
+//    throw LispError("PairValue internalToString error");
+//}
 
 std::string PairValue::toString() const {
-    return "(" + internalToString() + ")";
+    if(isList()){
+        std::stringstream ss;
+        ss<<"(";
+        auto temp=std::make_shared<PairValue>(*this);
+        while(true){
+            ss<<temp->car->toString();
+            if(temp->cdr->isNil()){
+                break;
+            }
+            temp=std::dynamic_pointer_cast<PairValue>(temp->cdr);
+            ss<<" ";
+        }
+        ss<<")";
+        return ss.str();
+    }else {
+        std::string result = "(" + car->toString() + " . " + cdr->toString() + ")";
+        return result;
+    }
 }
 
-std::vector<ValuePtr> PairValue::toVector() {//PairValue转vector
+std::vector<std::shared_ptr<Value>> PairValue::toVector() {//PairValue转vector
     std::vector<ValuePtr> result;
     ValuePtr temp = std::make_shared<PairValue>(*this);
     while (temp->isPair()) {
@@ -210,9 +220,6 @@ std::string StringValue::toString() const {
     return ss.str();
 }
 
-std::string StringValue::internalToString() const {
-    return value;
-}
 
 ValuePtr StringValue::toQuote() {
     return shared_from_this();//对于字符串，quote返回自身
@@ -223,8 +230,9 @@ std::string SymbolValue::toString() const {
     return value;
 }
 
+
 std::shared_ptr<Value> Value::toQuote() {
-    return std::make_shared<SymbolValue>(internalToString());//对于其他类型，quote返回自身的字符串表示
+    return std::make_shared<SymbolValue>(toString());//对于其他类型，quote返回自身的字符串表示
 }
 
 std::optional<std::string> Value::asSymbol() const {
