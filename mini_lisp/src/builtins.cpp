@@ -42,9 +42,9 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"/",          std::make_shared<BuiltinProcValue>("/", divide)},
         {"expt",       std::make_shared<BuiltinProcValue>("expt", expt)},
         {"quotient",   std::make_shared<BuiltinProcValue>("quotient", quotient)},
-        {"ValueRemainder", std::make_shared<BuiltinProcValue>("ValueRemainder", ValueRemainder)},
+        {"remainder", std::make_shared<BuiltinProcValue>("remainder", ValueRemainder)},
         {"modulo",     std::make_shared<BuiltinProcValue>("modulo", modulo)},
-        {"equalCheck?", std::make_shared<BuiltinProcValue>("equalCheck?", equalCheck)},
+        {"equal?", std::make_shared<BuiltinProcValue>("equal?", equalCheck)},
         {"eq?",   std::make_shared<BuiltinProcValue>("eq?", eqCheck)},
         {"not",   std::make_shared<BuiltinProcValue>("not", notCheck)},
         {"=",     std::make_shared<BuiltinProcValue>("=", equalSignCheck)},
@@ -410,7 +410,7 @@ ValuePtr modulo(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr equalCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    checkExactSize(params, 2, "equalCheck?");
+    checkExactSize(params, 2, "equal?");
     return std::make_shared<BooleanValue>(*params[0]==*params[1]);
 }
 
