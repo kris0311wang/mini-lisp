@@ -12,16 +12,16 @@ ValuePtr Parser::parse() {
     auto token = std::move(tokens.front());
     tokens.pop_front();
     if (token->getType() == TokenType::NUMERIC_LITERAL) {
-        auto value = dynamic_cast<NumericLiteralToken &>(*token).getValue();
+        auto value = static_cast<NumericLiteralToken &>(*token).getValue();
         return std::make_shared<NumericValue>(value);
     } else if (token->getType() == TokenType::BOOLEAN_LITERAL) {
-        auto value = dynamic_cast<BooleanLiteralToken &>(*token).getValue();
+        auto value = static_cast<BooleanLiteralToken &>(*token).getValue();
         return std::make_shared<BooleanValue>(value);
     } else if (token->getType() == TokenType::STRING_LITERAL) {
-        auto value = dynamic_cast<StringLiteralToken &>(*token).getValue();
+        auto value = static_cast<StringLiteralToken &>(*token).getValue();
         return std::make_shared<StringValue>(value);
     } else if (token->getType() == TokenType::IDENTIFIER) {
-        auto value = dynamic_cast<IdentifierToken &>(*token).getName();
+        auto value = static_cast<IdentifierToken &>(*token).getName();
         return std::make_shared<SymbolValue>(value);
     } else if (token->getType() == TokenType::QUOTE) {
         return std::make_shared<PairValue>(
@@ -58,10 +58,10 @@ ValuePtr Parser::parseTails() {
         tokens.pop_front();//弹出这个词法标记;
         return std::make_shared<NilValue>();//return 空表;
     }
-    auto car = this->parse();
+    auto car = parse();
     if (tokens.front()->getType() == TokenType::DOT) {
         tokens.pop_front();//弹出这个词法标记;
-        auto cdr = this->parse();
+        auto cdr = parse();
         if (tokens.front()->getType() != TokenType::RIGHT_PAREN) {
             throw SyntaxError("Expecting a right parenthesis");
         }

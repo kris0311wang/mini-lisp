@@ -43,7 +43,7 @@ std::string parseCode(std::istream& is,bool REPL) {//解析一行代码语句
             }
         }else if(ch=='\n'){
             if(REPL){
-                if(containContent(line))//REPL模式下换行时判断是否有内容
+                if(balance==0&&containContent(line))//REPL模式下换行时判断是否有内容
                     break;
             }
         }

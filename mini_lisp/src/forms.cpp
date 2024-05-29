@@ -73,10 +73,13 @@ ValuePtr quoteForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
 }
 
 ValuePtr ifForm(const std::vector<ValuePtr> &params, EvalEnv &env) {
-    checkExactSize(params, 3, "if");//检查参数个数是否为3
+    checkMinSize(params, 2, "if");//检查参数个数是否大于等于2
+    checkMaxSize(params, 3, "if");//检查参数个数是否小于等于3
     if (*env.eval(params[0])->asBool()) {//如果第一个参数为真
         return env.eval(params[1]);//返回第二个参数
     } else {
+        if (params.size() == 2)
+            return std::make_shared<NilValue>();//如果没有第三个参数，返回空表
         return env.eval(params[2]);//返回第三个参数
     }
 }
@@ -175,7 +178,7 @@ ValuePtr letForm(const std::vector<ValuePtr> &params, EvalEnv &env) {//(let 绑�
         auto bindingVector=i->toVector();
         checkExactSize(bindingVector,2,"let Form's binding pair");
         auto name=bindingVector[0]->asSymbol();//获取名字
-        auto value=bindingVector[1];//获取值
+        auto value=env.eval(bindingVector[1]);//获取值,这里的值是一次性绑定的，需要先计算（在父环境中）
         if(!name) {
             throwTypeError("let Form's binding pair's first element", "symbol");
         }
