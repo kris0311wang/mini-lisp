@@ -69,7 +69,6 @@ std::string parseCode(std::istream& is,bool REPL=false) {//解析一行代码语
 
 
 void REPLmode() {
-    RJSJ_TEST(TestCtx,Lv7Lib,Sicp);
     auto env = EvalEnv::createGlobal();
     while (true) {
         try {
