@@ -8,7 +8,7 @@
 class Value;
 class EvalEnv;
 using ValuePtr= std::shared_ptr<Value>;
-ValuePtr excecuteLine(const std::string &line, std::shared_ptr<EvalEnv> &env);
+ValuePtr excecuteLine(const std::string &line, std::shared_ptr<EvalEnv> &env, bool REPL);
 bool containContent(std::string line);
 std::string parseCode(std::istream& is,bool REPL=false);
 void REPLmode();

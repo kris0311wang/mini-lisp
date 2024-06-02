@@ -12,10 +12,12 @@
 #include <memory>
 #include "token.h"
 
-ValuePtr excecuteLine(const std::string &line, std::shared_ptr<EvalEnv> &env) {//执行一个代码语句(单一对象或者括号匹配的语句)
+ValuePtr excecuteLine(const std::string &line, std::shared_ptr<EvalEnv> &env, bool REPL) {//执行一个代码语句(单一对象或者括号匹配的语句)
     auto tokens = Tokenizer::tokenize(line);
     Parser parser(std::move(tokens));
-    auto value = parser.parse();
+    auto value = parser.parse(REPL);
+    if(REPL)
+        std::cout<<std::endl;
     return env->eval(value);
 }
 
@@ -56,13 +58,13 @@ std::string parseCode(std::istream& is,bool REPL) {//解析一行代码语句
 }
 
 
-void REPLmode() {
+void REPLmode() {//REPL模式
     auto env = EvalEnv::createGlobal();
     while (true) {
         try {
             std::cout << ">>> ";
             std::string line=parseCode(std::cin,true);
-            auto result=excecuteLine(line, env);
+            auto result= excecuteLine(line, env, true);
             std::cout << result->toString() << std::endl;
 
         } catch (std::runtime_error &e) {
@@ -83,7 +85,7 @@ void FILEmode(std::string filename){//文件模式
         try {
             std::string line = parseCode(file);
 //debug            std::cout<<line<<std::endl;
-            auto result=excecuteLine(line, env);
+            auto result= excecuteLine(line, env, false);
 //debug            std::cout<<"file line run: "+result->toString()<<std::endl;
         } catch (std::runtime_error &e) {
             std::cerr << "Error: " << e.what() << std::endl;
