@@ -10,6 +10,7 @@
 
 
 extern std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs;
+
 void checkExactSize(const std::vector<ValuePtr> &params, int size, const std::string &name);
 
 void checkMinSize(const std::vector<ValuePtr> &params, int size, const std::string &name);
@@ -44,9 +45,9 @@ ValuePtr eval(const std::vector<ValuePtr> &params, EvalEnv &env);
 
 ValuePtr cons(const std::vector<ValuePtr> &params, [[maybe_unused]] [[maybe_unused]] EvalEnv &env);
 
-ValuePtr builtinExit(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv& env);
+ValuePtr builtinExit(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
-ValuePtr newline(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv& env);
+ValuePtr newline(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
 ValuePtr atomCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
@@ -56,11 +57,11 @@ ValuePtr intergerCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] Eva
 
 ValuePtr listCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
-ValuePtr numberCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env);
+ValuePtr numberCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
-ValuePtr nullCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env);
+ValuePtr nullCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
-ValuePtr pairCheck(const std::vector<ValuePtr> &params,[[maybe_unused]] EvalEnv &env);
+ValuePtr pairCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
 ValuePtr procedureCheck(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
@@ -107,4 +108,5 @@ ValuePtr zeroCheck(const std::vector<ValuePtr> &params, EvalEnv &env);
 ValuePtr filter(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
 
 ValuePtr absoluteValue(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env);
+
 #endif  // MINI_LISP_BUILTINS_H

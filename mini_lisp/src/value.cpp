@@ -23,17 +23,17 @@ ValuePtr BooleanValue::toQuote() {
 }
 
 bool BooleanValue::operator==(const Value &rhs) const {
-    if(!rhs.isBool()){
+    if (!rhs.isBool()) {
         return false;
     }
-    return value==std::dynamic_pointer_cast<const BooleanValue>(rhs.shared_from_this())->getValue();
+    return value == std::dynamic_pointer_cast<const BooleanValue>(rhs.shared_from_this())->getValue();
 }
 
 bool NumericValue::operator==(const Value &rhs) const {
-    if(!rhs.isNum()){
+    if (!rhs.isNum()) {
         return false;
     }
-    return value==std::dynamic_pointer_cast<const NumericValue>(rhs.shared_from_this())->getValue();
+    return value == std::dynamic_pointer_cast<const NumericValue>(rhs.shared_from_this())->getValue();
 }
 
 std::string NumericValue::toString() const {
@@ -60,22 +60,22 @@ bool NilValue::operator==(const Value &rhs) const {
     return rhs.isNil();
 }
 
-bool SymbolValue::operator== (const Value &rhs) const {
-    if(!rhs.isSymbol()){
+bool SymbolValue::operator==(const Value &rhs) const {
+    if (!rhs.isSymbol()) {
         return false;
     }
-    return value==std::dynamic_pointer_cast<const SymbolValue>(rhs.shared_from_this())->value;
+    return value == std::dynamic_pointer_cast<const SymbolValue>(rhs.shared_from_this())->value;
 }
 
 bool StringValue::operator==(const Value &rhs) const {
-    if(!rhs.isString()){
+    if (!rhs.isString()) {
         return false;
     }
-    return value==std::dynamic_pointer_cast<const StringValue>(rhs.shared_from_this())->value;
+    return value == std::dynamic_pointer_cast<const StringValue>(rhs.shared_from_this())->value;
 }
 
 bool BuiltinProcValue::operator==(const Value &rhs) const {
-    if(!rhs.isBuiltin()){
+    if (!rhs.isBuiltin()) {
         return false;
     }
     throw LispError("BuiltinProcValue operator== undefined!");
@@ -86,11 +86,11 @@ bool LambdaValue::operator==(const Value &rhs) const {
 }
 
 bool PairValue::operator==(const Value &rhs) const {
-    if(!rhs.isPair()){
+    if (!rhs.isPair()) {
         return false;
     }
-    auto pair=std::dynamic_pointer_cast<const PairValue>(rhs.shared_from_this());
-    return *car==*pair->car&&*cdr==*pair->cdr;
+    auto pair = std::dynamic_pointer_cast<const PairValue>(rhs.shared_from_this());
+    return *car == *pair->car && *cdr == *pair->cdr;
 }
 
 bool Value::isNil() const {
@@ -125,13 +125,13 @@ bool Value::isLambda() const {
     return typeid(*this) == typeid(LambdaValue);
 }
 
-bool Value::isInt() const{
+bool Value::isInt() const {
     return false;
 }
 
 
 bool Value::isSelfEvaluating() const {
-    return isNum() || isBool() || isString() ;
+    return isNum() || isBool() || isString();
 }
 
 std::vector<std::shared_ptr<Value>> Value::toVector() {
@@ -150,21 +150,21 @@ std::vector<std::shared_ptr<Value>> Value::toVector() {
 //}
 
 std::string PairValue::toString() const {
-    if(isList()){
+    if (isList()) {
         std::stringstream ss;
-        ss<<"(";
-        auto temp=std::make_shared<PairValue>(*this);
-        while(true){
-            ss<<temp->car->toString();
-            if(temp->cdr->isNil()){
+        ss << "(";
+        auto temp = std::make_shared<PairValue>(*this);
+        while (true) {
+            ss << temp->car->toString();
+            if (temp->cdr->isNil()) {
                 break;
             }
-            temp=std::dynamic_pointer_cast<PairValue>(temp->cdr);
-            ss<<" ";
+            temp = std::dynamic_pointer_cast<PairValue>(temp->cdr);
+            ss << " ";
         }
-        ss<<")";
+        ss << ")";
         return ss.str();
-    }else {
+    } else {
         std::string result = "(" + car->toString() + " . " + cdr->toString() + ")";
         return result;
     }
@@ -172,14 +172,14 @@ std::string PairValue::toString() const {
 
 std::vector<std::shared_ptr<Value>> PairValue::toVector() {//PairValue转vector
     std::vector<ValuePtr> result;
-    ValuePtr temp=std::make_shared<PairValue>(*this);
-    while(temp->isList()){
-        if(temp->isNil()){
+    ValuePtr temp = std::make_shared<PairValue>(*this);
+    while (temp->isList()) {
+        if (temp->isNil()) {
             break;
         }
-        auto tempList=std::dynamic_pointer_cast<PairValue>(temp);
+        auto tempList = std::dynamic_pointer_cast<PairValue>(temp);
         result.push_back(tempList->getCar());
-        temp=tempList->getCdr();
+        temp = tempList->getCdr();
     }
     return result;
 }
@@ -249,11 +249,11 @@ std::optional<bool> Value::asBool() {
 }
 
 bool Value::isList() const {//如果最后的cdr是NilValue就是list
-    if(isNil()){
+    if (isNil()) {
         return true;
     }
-    if(isPair()){
-        auto pairvalue=std::static_pointer_cast<const PairValue>(std::move(shared_from_this()));
+    if (isPair()) {
+        auto pairvalue = std::static_pointer_cast<const PairValue>(std::move(shared_from_this()));
         return pairvalue->getCdr()->isList();
     }
     return false;
@@ -275,7 +275,7 @@ ValuePtr NumericValue::toQuote() {
     return shared_from_this();
 }
 
-void NumericValue::setValue(const double& value) {
+void NumericValue::setValue(const double &value) {
     this->value = value;
 }
 
@@ -293,7 +293,8 @@ LambdaValue::LambdaValue(std::vector<std::string> params, std::vector<ValuePtr> 
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     if (args.size() < params.size()) {//传入参数不够则创建子表达式
-        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body,lambdaEnv->createChild());
+        std::shared_ptr<LambdaValue> childLambda = std::make_shared<LambdaValue>(params, body,
+                                                                                 lambdaEnv->createChild());
         for (auto i = 0; i < args.size(); i++) {//将参数绑定到子表达式的环境中
             childLambda->lambdaEnv->defineBinding(params[i], args[i]);
             childLambda->params.erase(childLambda->params.begin());//删除已经绑定的参数
@@ -305,7 +306,7 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr> &args) {
     for (size_t i = 0; i < params.size(); i++) {
         childEnv->defineBinding(params[i], args[i]);
     }
-    result= childEnv->eval(body);
+    result = childEnv->eval(body);
     return result;
 }
 
@@ -313,12 +314,12 @@ ValuePtr SymbolValue::toQuote() {
     return shared_from_this();//对于符号，quote返回自身
 }
 
-std::string StringValue::getValue(){
+std::string StringValue::getValue() {
     return value;
 }
 
 bool Value::isAtom() const {
-    if(isPair()){
+    if (isPair()) {
         return false;
     }
     return true;

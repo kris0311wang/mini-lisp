@@ -16,20 +16,20 @@ ValuePtr excecuteLine(const std::string &line, std::shared_ptr<EvalEnv> &env, bo
     auto tokens = Tokenizer::tokenize(line);
     Parser parser(std::move(tokens));
     auto value = parser.parse(REPL);
-    if(REPL)
-        std::cout<<std::endl;
+    if (REPL)
+        std::cout << std::endl;
     return env->eval(value);
 }
 
-bool containContent(std::string line){//用于REPL换行时判断是否有内容
-    for(auto ch:line){
-        if(ch!=' '&&ch!='\n')
+bool containContent(std::string line) {//用于REPL换行时判断是否有内容
+    for (auto ch: line) {
+        if (ch != ' ' && ch != '\n')
             return true;
     }
     return false;
 }
 
-std::string parseCode(std::istream& is,bool REPL) {//解析一行代码语句
+std::string parseCode(std::istream &is, bool REPL) {//解析一行代码语句
     std::string line;
     char ch;
     int balance = 0;
@@ -43,14 +43,14 @@ std::string parseCode(std::istream& is,bool REPL) {//解析一行代码语句
             if (balance == 0) {
                 break;
             }
-        }else if(ch=='\n'){
-            if(REPL){
-                if(balance==0&&containContent(line))//REPL模式下换行时判断是否有内容
+        } else if (ch == '\n') {
+            if (REPL) {
+                if (balance == 0 && containContent(line))//REPL模式下换行时判断是否有内容,如果有内容就输出这个内容
                     break;
             }
         }
     }
-    if(is.eof()){//运行完毕，正常退出进程，代码为0
+    if (is.eof()) {//运行完毕，正常退出进程，代码为0
         exit(0);
     }
 
@@ -63,8 +63,8 @@ void REPLmode() {//REPL模式
     while (true) {
         try {
             std::cout << ">>> ";
-            std::string line=parseCode(std::cin,true);
-            auto result= excecuteLine(line, env, true);
+            std::string line = parseCode(std::cin, true);
+            auto result = excecuteLine(line, env, true);
             std::cout << result->toString() << std::endl;
 
         } catch (std::runtime_error &e) {
@@ -73,19 +73,19 @@ void REPLmode() {//REPL模式
     }
 }
 
-void FILEmode(std::string filename){//文件模式
+void FILEmode(std::string filename) {//文件模式
     auto env = EvalEnv::createGlobal();
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error: cannot open file " << filename << std::endl;
         exit(1);
     }
-    std::cout<<"file mode: "+filename<<std::endl;
-    while(true) {
+    std::cout << "file mode: " + filename << std::endl;
+    while (true) {//一行一行解析代码直到结尾
         try {
             std::string line = parseCode(file);
 //debug            std::cout<<line<<std::endl;
-            auto result= excecuteLine(line, env, false);
+            auto result = excecuteLine(line, env, false);
 //debug            std::cout<<"file line run: "+result->toString()<<std::endl;
         } catch (std::runtime_error &e) {
             std::cerr << "Error: " << e.what() << std::endl;

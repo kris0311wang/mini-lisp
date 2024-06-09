@@ -14,13 +14,13 @@
 #include"builtins.h"
 
 ValuePtr EvalEnv::eval(ValuePtr expr) {
-    if (expr->isSelfEvaluating()||expr->isBuiltin()||expr->isLambda()) {//递归结束条件：得到一个自求值类型的值,或者得到过程量
+    if (expr->isSelfEvaluating() || expr->isBuiltin() || expr->isLambda()) {//递归结束条件：得到一个自求值类型的值,或者得到过程量
         return expr;
     } else if (expr->isNil()) {//计算空表抛出异常
         throw LispError("Evaluating nil is prohibited.");
     } else if (expr->isSymbol()) {//如果是符号,则在符号表中查找
         return lookupBinding(*expr->asSymbol());
-    }  else if (expr->isPair()) {//如果是对子类型，第一个元素一共有两种情况：特殊形式或者过程。由于特殊形式不能被命名，所以先考虑特殊形式，剩下的就是过程
+    } else if (expr->isPair()) {//如果是对子类型，第一个元素一共有两种情况：特殊形式或者过程。由于特殊形式不能被命名，所以先考虑特殊形式，剩下的就是过程
         auto pairExpr = std::dynamic_pointer_cast<PairValue>(expr);
         if (pairExpr->getCar()->isSymbol()) {//如果第一个元素是符号
             auto name = pairExpr->getCar()->asSymbol();
@@ -31,14 +31,13 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
         ValuePtr proc = eval(pairExpr->getCar());
         std::vector<ValuePtr> args = evalList(pairExpr->getCdr());//递归eval得到最简参数表
         return apply(proc, args, *this);
-    }
-    else {
+    } else {
         throw LispError("Unimplemented");
     }
 }
 
-EvalEnv::EvalEnv(bool root) : parent(nullptr){//初始化符号表,将内置函数添加到符号表中,并将parent指针初始化为nullptr
-    if(root) {
+EvalEnv::EvalEnv(bool root) : parent(nullptr) {//初始化符号表,将内置函数添加到符号表中,并将parent指针初始化为nullptr，只有根节点需要初始化内置符号表
+    if (root) {
         for (auto &i: builtin_funcs) {
             defineBinding(i.first, i.second);
         }
@@ -54,9 +53,9 @@ ValuePtr EvalEnv::lookupBinding(const std::string &name) const {//查找name在�
     auto it = symbolTable.find(name);
     if (it == symbolTable.end()) {
         if (parent) {
-            return parent->lookupBinding(name);
+            return parent->lookupBinding(name);//递归查找
         } else {
-            throw LispError("Unbound symbol: " + name);
+            throw LispError("Unbound symbol: " + name);//找不到报错
         }
     }
     return it->second;
@@ -84,58 +83,55 @@ std::vector<ValuePtr> EvalEnv::evalList(const std::vector<ValuePtr> &expr) {//�
     return result;
 }
 
-ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args, EvalEnv &env) {
+ValuePtr EvalEnv::apply(const ValuePtr &proc, const std::vector<ValuePtr> &args, EvalEnv &env) {//调用过程proc
     if (proc->isBuiltin()) {
         // 调用内置过程
         return std::static_pointer_cast<BuiltinProcValue>(proc)->func(args, env);
     } else if (proc->isLambda()) {
         return std::static_pointer_cast<LambdaValue>(proc)->apply(args);
     } else {
-        throw LispError("apply expected a procedure but got "+proc->toString());
+        throw LispError("apply expected a procedure but got " + proc->toString());
     }
 }
 
-ValuePtr EvalEnv::eval(const std::vector<ValuePtr> &expr) {//移植valuePtr的计算，仅内部计算使用
+ValuePtr
+EvalEnv::eval(const std::vector<ValuePtr> &expr) {//分两种情况，如果是表达式经过tovector之后得到的vector则计算，如果是多个表达式的list则顺序执行，返回最后一个表达式的值
     if (expr.empty()) {//如果表达式为空,返回空表，递归结束条件之一，其余情况通过递归计算第一个元素得到
         return std::make_shared<NilValue>();
-    } else if (expr[0]->isNil()) {//如果第一个元素是空表,则弹出
-        return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
-    }else if (expr.size() == 1 ) {//移植
+    } else if (expr.size() == 1) {//移植
         return eval(expr[0]);
     }//接下来都是多于1个元素的情况。递归计算第一个元素
-    else if(expr[0]->isSelfEvaluating()) {//如果第一个元素是自求值类型,则返回下一个表达式的结果
+    else if (expr[0]->isSelfEvaluating()) {//如果第一个元素是自求值类型,则返回下一个表达式的结果
         return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
-    }
-    else if (expr[0]->isSymbol()) {//如果第一个元素是符号
+    } else if (expr[0]->isSymbol()) {//如果第一个元素是符号
         auto name = expr[0]->asSymbol();
         if (SPECIAL_FORMS.find(*name) != SPECIAL_FORMS.end()) {//如果是特殊形式,调用特殊形式
             return SPECIAL_FORMS.at(*name)(std::vector<ValuePtr>(expr.begin() + 1, expr.end()), *this);
         } else {//如果不是特殊形式,那么第一个元素是过程，调用apply函数
             ValuePtr proc = eval(expr[0]);
             std::vector<ValuePtr> args = evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
-            auto result= apply(proc, args, *this);
+            auto result = apply(proc, args, *this);
             return result;
         }
-    } else if (expr[0]->isBuiltin()||expr[0]->isLambda()) {//如果第一个元素是内置函数,调用
+    } else if (expr[0]->isBuiltin() || expr[0]->isLambda()) {//如果第一个元素是内置函数,调用
         return apply(expr[0], evalList(std::vector<ValuePtr>(expr.begin() + 1, expr.end())), *this);
-    } else if (expr[0]->isPair() ) {//如果第一个元素是表达式，计算之后pop掉
+    } else if (expr[0]->isPair()) {//如果第一个元素是表达式，计算之后pop掉
         eval(expr[0]);
         return eval(std::vector<ValuePtr>(expr.begin() + 1, expr.end()));
     }
     throw LispError("evalVector Unimplemented");
 }
 
-std::shared_ptr<EvalEnv> EvalEnv::createChild() {
+std::shared_ptr<EvalEnv> EvalEnv::createChild() {//创建子环境的共享指针
     auto child = EvalEnv(false);
     child.parent = shared_from_this();
     return std::make_shared<EvalEnv>(child);
 }
 
-std::shared_ptr<EvalEnv> EvalEnv::createGlobal() {
-    auto global = EvalEnv(true);
+std::shared_ptr<EvalEnv> EvalEnv::createGlobal() {//创建全局环境的共享指针
+    auto global = EvalEnv(true);//根节点
     return std::make_shared<EvalEnv>(global);
 }
-
 
 
 #pragma clang diagnostic pop

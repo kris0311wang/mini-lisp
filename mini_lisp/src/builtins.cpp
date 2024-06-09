@@ -7,6 +7,7 @@
 #include"builtins.h"
 #include"error.h"
 #include"eval_env.h"
+
 std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs{
         {"+",          std::make_shared<BuiltinProcValue>("+", add)},
         {"print",      std::make_shared<BuiltinProcValue>("print", print)},
@@ -42,61 +43,67 @@ std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtin_funcs
         {"/",          std::make_shared<BuiltinProcValue>("/", divide)},
         {"expt",       std::make_shared<BuiltinProcValue>("expt", expt)},
         {"quotient",   std::make_shared<BuiltinProcValue>("quotient", quotient)},
-        {"remainder", std::make_shared<BuiltinProcValue>("remainder", ValueRemainder)},
+        {"remainder",  std::make_shared<BuiltinProcValue>("remainder", ValueRemainder)},
         {"modulo",     std::make_shared<BuiltinProcValue>("modulo", modulo)},
-        {"equal?", std::make_shared<BuiltinProcValue>("equal?", equalCheck)},
-        {"eq?",   std::make_shared<BuiltinProcValue>("eq?", eqCheck)},
-        {"not",   std::make_shared<BuiltinProcValue>("not", notCheck)},
-        {"=",     std::make_shared<BuiltinProcValue>("=", equalSignCheck)},
-        {">=",    std::make_shared<BuiltinProcValue>(">=", greaterThanOrEqual)},
-        {"<=",    std::make_shared<BuiltinProcValue>("<=", lessThanOrEqual)},
-        {"even?", std::make_shared<BuiltinProcValue>("even?", evenCheck)},
-        {"odd?",  std::make_shared<BuiltinProcValue>("odd?", oddCheck)},
-        {"zero?",std::make_shared<BuiltinProcValue>("zero?",zeroCheck)},
-        {"filter",std::make_shared<BuiltinProcValue>("filter",filter)},
-        {"abs",std::make_shared<BuiltinProcValue>("abs", absoluteValue)}
+        {"equal?",     std::make_shared<BuiltinProcValue>("equal?", equalCheck)},
+        {"eq?",        std::make_shared<BuiltinProcValue>("eq?", eqCheck)},
+        {"not",        std::make_shared<BuiltinProcValue>("not", notCheck)},
+        {"=",          std::make_shared<BuiltinProcValue>("=", equalSignCheck)},
+        {">=",         std::make_shared<BuiltinProcValue>(">=", greaterThanOrEqual)},
+        {"<=",         std::make_shared<BuiltinProcValue>("<=", lessThanOrEqual)},
+        {"even?",      std::make_shared<BuiltinProcValue>("even?", evenCheck)},
+        {"odd?",       std::make_shared<BuiltinProcValue>("odd?", oddCheck)},
+        {"zero?",      std::make_shared<BuiltinProcValue>("zero?", zeroCheck)},
+        {"filter",     std::make_shared<BuiltinProcValue>("filter", filter)},
+        {"abs",        std::make_shared<BuiltinProcValue>("abs", absoluteValue)}
 };  // 内建函数的map
 
 void checkExactSize(const std::vector<ValuePtr> &params, int size, const std::string &name) {//检查参数个数是否等于size
     if (params.size() != size) {
-        throw LispError(name + ": arguments must be " + std::to_string(size) + ", but got " + std::to_string(params.size()) + ".");
+        throw LispError(
+                name + ": arguments must be " + std::to_string(size) + ", but got " + std::to_string(params.size()) +
+                ".");
     }
 }
 
-void throwTypeError(const std::string &name,const std::string& type) {//抛出类型错误
+void throwTypeError(const std::string &name, const std::string &type) {//抛出类型错误
     throw LispError(name + ": arguments must be " + type + ".");
 }
 
 void checkMinSize(const std::vector<ValuePtr> &params, int size, const std::string &name) {//检查参数个数是否大于等于size
     if (params.size() < size) {
-        throw LispError(name + ": arguments must be at least " + std::to_string(size) + "，but got " + std::to_string(params.size()) + ".");
+        throw LispError(name + ": arguments must be at least " + std::to_string(size) + "，but got " +
+                        std::to_string(params.size()) + ".");
     }
 }
 
 void checkMaxSize(const std::vector<ValuePtr> &params, int size, const std::string &name) {//检查参数个数是否小于等于size
     if (params.size() > size) {
-        throw LispError(name + ": arguments must be at most " + std::to_string(size) + "，but got " + std::to_string(params.size()) + ".");
+        throw LispError(name + ": arguments must be at most " + std::to_string(size) + "，but got " +
+                        std::to_string(params.size()) + ".");
     }
 }
 
-ValuePtr add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
+ValuePtr
+add(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//add函数的实现:输入是一个ValuePtr的vector，输出是一个ValuePtr
     if (params.empty()) {
         return std::make_shared<NumericValue>(0);
     }
-    double result=0;
+    double result = 0;
     for (const auto &i: params) {
-        if (auto num = i->asNumber()){
-             result += *num;
+        if (auto num = i->asNumber()) {
+            result += *num;
         } else {
-            throwTypeError("add","numbers");
+            throwTypeError("add", "numbers");
         }
     }
     return std::make_shared<NumericValue>(result);
 }
 
-ValuePtr print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//print函数的实现:输入是一个ValuePtr的vector，输出空表
+ValuePtr
+print(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {//print函数的实现:输入是一个ValuePtr的vector，输出空表
     checkExactSize(params, 1, "print");
-    std::cout << params[0]->toString()<<std::endl;
+    std::cout << params[0]->toString() << std::endl;
     return std::make_shared<NilValue>();
 }
 
@@ -105,7 +112,7 @@ ValuePtr sub(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env)
     checkMaxSize(params, 2, "sub");
     if (params.size() == 1) {
         if (!params[0]->isNum()) {
-            throwTypeError("sub","numbers");
+            throwTypeError("sub", "numbers");
         }
         return std::make_shared<NumericValue>(-*params[0]->asNumber());
     }
@@ -114,12 +121,12 @@ ValuePtr sub(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env)
 
 ValuePtr greaterThan(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     checkExactSize(params, 2, ">");//检查参数个数是否等于2
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if(x && y){
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (x && y) {
         return std::make_shared<BooleanValue>(*params[0]->asNumber() > *params[1]->asNumber());
     }
-    throwTypeError(">","numbers");
+    throwTypeError(">", "numbers");
 }
 
 ValuePtr lessThan(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
@@ -130,7 +137,7 @@ ValuePtr lessThan(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv 
 ValuePtr length(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     checkExactSize(params, 1, "length");
     if (!params[0]->isList()) {
-        throwTypeError("length","lists");
+        throwTypeError("length", "lists");
     }
     return std::make_shared<NumericValue>(params[0]->toVector().size());
 }
@@ -138,7 +145,7 @@ ValuePtr length(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
 ValuePtr car(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     checkExactSize(params, 1, "car");
     if (!params[0]->isPair()) {
-        throwTypeError("car","pairs");
+        throwTypeError("car", "pairs");
     }
     return std::static_pointer_cast<PairValue>(params[0])->getCar();
 }
@@ -146,7 +153,7 @@ ValuePtr car(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env)
 ValuePtr cdr(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     checkExactSize(params, 1, "cdr");
     if (!params[0]->isPair()) {
-        throwTypeError("cdr","lists");
+        throwTypeError("cdr", "lists");
     }
     return std::static_pointer_cast<PairValue>(params[0])->getCdr();
 }
@@ -154,10 +161,10 @@ ValuePtr cdr(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env)
 ValuePtr multiply(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     double result = 1;
     for (const auto &i: params) {
-        if (auto num=env.eval(i)->asNumber()) {
+        if (auto num = env.eval(i)->asNumber()) {
             result *= *num;
         } else {
-            throwTypeError("multiply","numbers");
+            throwTypeError("multiply", "numbers");
         }
     }
     return std::make_shared<NumericValue>(result);
@@ -209,7 +216,7 @@ ValuePtr builtinExit(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalE
     if (params[0]->isInt()) {
         exit(*params[0]->asNumber());  // NOLINT(*-narrowing-conversions)
     }
-    throwTypeError("exit","integers");
+    throwTypeError("exit", "integers");
 }
 
 ValuePtr newline(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
@@ -272,15 +279,15 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
     if (params.empty()) {//如果参数为空,返回空表
         return std::make_shared<NilValue>();
     }
-    int beginIndex=0;
-    while(beginIndex<params.size()&&params[beginIndex]->isNil()){//找到第一个非空表的参数
+    int beginIndex = 0;
+    while (beginIndex < params.size() && params[beginIndex]->isNil()) {//找到第一个非空表的参数
         beginIndex++;
     }
-    if(beginIndex==params.size()){//如果全是空表,返回空表
+    if (beginIndex == params.size()) {//如果全是空表,返回空表
         return std::make_shared<NilValue>();
     }
-    auto resultVector=params[beginIndex]->toVector();
-    for (int i=beginIndex+1; i < params.size(); i++) {
+    auto resultVector = params[beginIndex]->toVector();
+    for (int i = beginIndex + 1; i < params.size(); i++) {
         auto tempVector = params[i]->toVector();
         resultVector.insert(resultVector.end(), tempVector.begin(), tempVector.end());
     }
@@ -288,7 +295,7 @@ ValuePtr append(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &e
 }
 
 ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
-    if(params.empty()){//如果参数为空,返回空表
+    if (params.empty()) {//如果参数为空,返回空表
         return std::make_shared<NilValue>();
     }
     return std::make_shared<PairValue>(params);
@@ -296,7 +303,7 @@ ValuePtr list(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env
 
 ValuePtr map(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "map");
-    if (!(params[0]->isBuiltin()||params[0]->isLambda())) {
+    if (!(params[0]->isBuiltin() || params[0]->isLambda())) {
         throw LispError("map: first argument must be a procedure.");
     }
     if (!params[1]->isList()) {
@@ -331,95 +338,95 @@ ValuePtr reduce(const std::vector<ValuePtr> &params, EvalEnv &env) {
 
 ValuePtr divide(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkMaxSize(params, 2, "/");
-    if(params.size()==1){//特殊情况，只有一个参数
-        if(!params[0]->isNum()){
-            throwTypeError("/","numbers");
+    if (params.size() == 1) {//特殊情况，只有一个参数
+        if (!params[0]->isNum()) {
+            throwTypeError("/", "numbers");
         }
-        if(*params[0]->asNumber()==0){
+        if (*params[0]->asNumber() == 0) {
             throw LispError("divide: divisor can't be zero.");
         }
-        return std::make_shared<NumericValue>(1/ *params[0]->asNumber());
+        return std::make_shared<NumericValue>(1 / *params[0]->asNumber());
     }
-    if(!(params[0]->isNum()&&params[1]->isNum())){
-        throwTypeError("/","numbers");
+    if (!(params[0]->isNum() && params[1]->isNum())) {
+        throwTypeError("/", "numbers");
     }
-    if(*params[1]->asNumber()==0){
+    if (*params[1]->asNumber() == 0) {
         throw LispError("divide: divisor can't be zero.");
     }
-    return std::make_shared<NumericValue>(*params[0]->asNumber()/ *params[1]->asNumber());
+    return std::make_shared<NumericValue>(*params[0]->asNumber() / *params[1]->asNumber());
 }
 
-ValuePtr expt(const std::vector<ValuePtr> &params, EvalEnv &env){
+ValuePtr expt(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "expt");
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if(!(x&&y)){
-        throwTypeError("expt","numbers");
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (!(x && y)) {
+        throwTypeError("expt", "numbers");
     }
-    if(*x==0&&*y==0){
+    if (*x == 0 && *y == 0) {
         throw LispError("expt: 0^0 is undefined.");
     }
-    return std::make_shared<NumericValue>(std::pow(*x,*y));
+    return std::make_shared<NumericValue>(std::pow(*x, *y));
 }
 
-ValuePtr quotient(const std::vector<ValuePtr> &params, EvalEnv &env){
+ValuePtr quotient(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "quotient");
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if(!(x&&y)){
-        throwTypeError("quotient","numbers");
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (!(x && y)) {
+        throwTypeError("quotient", "numbers");
     }
-    if(*params[1]->asNumber()==0){
+    if (*params[1]->asNumber() == 0) {
         throw LispError("quotient: divisor can't be zero.");
     }
-    return std::make_shared<NumericValue>(int(*x/ *y));
+    return std::make_shared<NumericValue>(int(*x / *y));
 }
 
-ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, EvalEnv &env){
+ValuePtr ValueRemainder(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "ValueRemainder");
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if(!(x&&y)){
-        throwTypeError("ValueRemainder","numbers");
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (!(x && y)) {
+        throwTypeError("ValueRemainder", "numbers");
     }
-    if(*y==0){
+    if (*y == 0) {
         throw LispError("ValueRemainder: divisor can't be zero.");
     }
-    if(!(params[0]->isInt() && params[1]->isInt())){
-        throwTypeError("ValueRemainder","integers");
+    if (!(params[0]->isInt() && params[1]->isInt())) {
+        throwTypeError("ValueRemainder", "integers");
     }
-    return std::make_shared<NumericValue>(int(*x)%int(*y));
+    return std::make_shared<NumericValue>(int(*x) % int(*y));
 }
 
 ValuePtr modulo(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "modulo");
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if (!(x&&y)) {
-        throwTypeError("modulo","numbers");
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (!(x && y)) {
+        throwTypeError("modulo", "numbers");
     }
-    if (*y== 0) {
+    if (*y == 0) {
         throw LispError("modulo: divisor can't be zero.");
     }
     if (!(params[0]->isInt() && params[1]->isInt())) {
-        throwTypeError("modulo","integers");
+        throwTypeError("modulo", "integers");
     }
-    auto xint=int(*x);
-    auto yint=int(*y);
-    return std::make_shared<NumericValue>((xint%yint+yint)%yint);
+    auto xint = int(*x);
+    auto yint = int(*y);
+    return std::make_shared<NumericValue>((xint % yint + yint) % yint);
 }
 
 ValuePtr equalCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "equal?");
-    return std::make_shared<BooleanValue>(*params[0]==*params[1]);
+    return std::make_shared<BooleanValue>(*params[0] == *params[1]);
 }
 
 ValuePtr eqCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "eq?");
-    if(params[0]->isPair()&&params[1]->isPair() ||params[0]->isString()&&params[1]->isString()){
-        return std::make_shared<BooleanValue>(params[0]==params[1]);
+    if (params[0]->isPair() && params[1]->isPair() || params[0]->isString() && params[1]->isString()) {
+        return std::make_shared<BooleanValue>(params[0] == params[1]);
     }
-    return std::make_shared<BooleanValue>(*params[0]==*params[1]);
+    return std::make_shared<BooleanValue>(*params[0] == *params[1]);
 }
 
 ValuePtr notCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
@@ -429,73 +436,73 @@ ValuePtr notCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
 
 ValuePtr equalSignCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "=");
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if(!(x&&y)){
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (!(x && y)) {
         throw LispError("equalSignCheck: arguments must be numbers.");
     }
-    return std::make_shared<BooleanValue>(*x==*y);
+    return std::make_shared<BooleanValue>(*x == *y);
 }
 
 ValuePtr greaterThanOrEqual(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, ">=");
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if(!(x&&y)){
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (!(x && y)) {
         throw LispError(">=: arguments must be numbers.");
     }
-    return std::make_shared<BooleanValue>(*x>=*y);
+    return std::make_shared<BooleanValue>(*x >= *y);
 }
 
 ValuePtr lessThanOrEqual(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "<=");
-    auto x=params[0]->asNumber();
-    auto y=params[1]->asNumber();
-    if(!(x&&y)){
+    auto x = params[0]->asNumber();
+    auto y = params[1]->asNumber();
+    if (!(x && y)) {
         throw LispError("<=: arguments must be numbers.");
     }
-    return std::make_shared<BooleanValue>(*x<=*y);
+    return std::make_shared<BooleanValue>(*x <= *y);
 }
 
 ValuePtr evenCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 1, "even?");
-    if(!params[0]->isInt()){
-        throwTypeError("evenCheck","integers");
+    if (!params[0]->isInt()) {
+        throwTypeError("evenCheck", "integers");
     }
-    return std::make_shared<BooleanValue>(int(*params[0]->asNumber())%2==0);
+    return std::make_shared<BooleanValue>(int(*params[0]->asNumber()) % 2 == 0);
 }
 
 ValuePtr oddCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 1, "odd?");
-    if(!params[0]->isInt()){
-        throwTypeError("odd?","integers");
+    if (!params[0]->isInt()) {
+        throwTypeError("odd?", "integers");
     }
-    return std::make_shared<BooleanValue>(int(*params[0]->asNumber())%2!=0);
+    return std::make_shared<BooleanValue>(int(*params[0]->asNumber()) % 2 != 0);
 }
 
 ValuePtr zeroCheck(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 1, "zero?");
-    auto x=params[0]->asNumber();
-    if(!x){
-        throwTypeError("zero?","numbers");
+    auto x = params[0]->asNumber();
+    if (!x) {
+        throwTypeError("zero?", "numbers");
     }
-    return std::make_shared<BooleanValue>(*x==0);
+    return std::make_shared<BooleanValue>(*x == 0);
 }
 
 ValuePtr filter(const std::vector<ValuePtr> &params, EvalEnv &env) {
     checkExactSize(params, 2, "filter");
-    if(!(params[0]->isBuiltin()||params[0]->isLambda())){
+    if (!(params[0]->isBuiltin() || params[0]->isLambda())) {
         throw LispError("filter: first argument must be a procedure.");
     }
-    if(!params[1]->isList()){
+    if (!params[1]->isList()) {
         throw LispError("filter: second argument must be a list.");
     }
-    const auto &proc=params[0];
-    auto list=params[1]->toVector();
+    const auto &proc = params[0];
+    auto list = params[1]->toVector();
     std::vector<ValuePtr> result;
     result.reserve(list.size());//预留空间(clang-tidy)
-    for(const auto &i:list){
-        if(*EvalEnv::apply(proc,{i},env)->asBool()){
+    for (const auto &i: list) {
+        if (*EvalEnv::apply(proc, {i}, env)->asBool()) {
             result.push_back(i);
         }
     }
@@ -504,8 +511,8 @@ ValuePtr filter(const std::vector<ValuePtr> &params, EvalEnv &env) {
 
 ValuePtr absoluteValue(const std::vector<ValuePtr> &params, [[maybe_unused]] EvalEnv &env) {
     checkExactSize(params, 1, "abs");
-    if(!params[0]->isNum()){
-        throwTypeError("abs","numbers");
+    if (!params[0]->isNum()) {
+        throwTypeError("abs", "numbers");
     }
     return std::make_shared<NumericValue>(std::abs(*params[0]->asNumber()));
 }

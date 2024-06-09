@@ -15,10 +15,11 @@ class Value;
 using ValuePtr = std::shared_ptr<Value>;
 
 class EvalEnv : public std::enable_shared_from_this<EvalEnv> {
-    std::unordered_map<std::string, ValuePtr> symbolTable;//unimplemented
-    std::shared_ptr<EvalEnv> parent = nullptr;
+    std::unordered_map<std::string, ValuePtr> symbolTable;//符号表
+    std::shared_ptr<EvalEnv> parent = nullptr;//父节点
+
+    EvalEnv(bool root);//只有根节点需要添加内置符号表，同时设置成private用只能指针管理
 public:
-    EvalEnv(bool root);
 
     ValuePtr eval(ValuePtr expr);
 

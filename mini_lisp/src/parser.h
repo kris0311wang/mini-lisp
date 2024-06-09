@@ -18,13 +18,13 @@ using ValuePtr = std::shared_ptr<Value>;
 class Parser {
     std::deque<TokenPtr> unParsedTokens;
     std::deque<TokenPtr> tokens;
-    int balance=0;
+    int balance = 0;
 public:
     explicit Parser(std::deque<TokenPtr> tokens);;
 
-    ValuePtr parse(bool REPL=false);
+    ValuePtr parse(bool REPL = false);
 
-    ValuePtr parseTails(bool REPL=false);
+    ValuePtr parseTails(bool REPL = false);
 };
 
 #endif //MINI_LISP_PARSER_H

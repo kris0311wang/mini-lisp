@@ -4,14 +4,23 @@
 
 #ifndef MINI_LISP_MODES_H
 #define MINI_LISP_MODES_H
+
 #include <iostream>
+
 class Value;
+
 class EvalEnv;
-using ValuePtr= std::shared_ptr<Value>;
+
+using ValuePtr = std::shared_ptr<Value>;
+
 ValuePtr excecuteLine(const std::string &line, std::shared_ptr<EvalEnv> &env, bool REPL);
+
 bool containContent(std::string line);
-std::string parseCode(std::istream& is,bool REPL=false);
+
+std::string parseCode(std::istream &is, bool REPL = false);
+
 void REPLmode();
+
 void FILEmode(std::string filename);
 
 #endif //MINI_LISP_MODES_H
